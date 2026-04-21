@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CariMakanBDG - Food Delivery</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: #fafafa;
+            }
+
+            /* Navbar Styling */
+            .navbar-brand {
+                font-weight: 700;
+                font-size: 1.5rem;
+                color: #000 !important;
+            }
+
+            .nav-link {
+                font-weight: 500;
+                color: #333 !important;
+                margin-left: 1rem;
+            }
+
+            /* Hero Section Styling */
+            .hero-section {
+                position: relative;
+                background: url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop') center/cover no-repeat;
+                height: 400px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                color: white;
+                margin-bottom: 3rem;
+            }
+
+            .hero-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.6);
+            }
+
+            .hero-content {
+                position: relative;
+                z-index: 1;
+                width: 100%;
+                max-width: 800px;
+                padding: 0 20px;
+            }
+
+            .hero-title {
+                font-weight: 700;
+                font-size: 3rem;
+                margin-bottom: 0.5rem;
+            }
+
+            /* Search Bar di Hero */
+            .search-container {
+                background: white;
+                border-radius: 50px;
+                padding: 8px;
+                display: flex;
+                margin-top: 2rem;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+
+            .search-container input {
+                border: none;
+                box-shadow: none;
+                border-radius: 50px 0 0 50px;
+                padding-left: 20px;
+            }
+
+            .search-container input:focus {
+                outline: none;
+                box-shadow: none;
+            }
+
+            .btn-search {
+                border-radius: 50px;
+                padding: 10px 30px;
+                font-weight: 600;
+                background-color: #3b82f6;
+                color: white;
+                border: none;
+            }
+
+            /* Card Restoran Styling */
+            .restaurant-card {
+                border-radius: 16px;
+                border: none;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+                overflow: hidden;
+            }
+
+            .restaurant-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            }
+
+            .card-img-top {
+                height: 180px;
+                object-fit: cover;
+            }
+
+            /* Section Container (Payment & History) */
+            .action-card {
+                border-radius: 16px;
+                border: none;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                background: white;
+                padding: 2rem;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top py-3">
+            <div class="container">
+                <a class="navbar-brand" href="#" onclick="showSection('browse-section')">CariMakanBDG</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('browse-section')">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="showSection('history-section'); fetchHistory();">Riwayat
+                                Pesanan</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div id="browse-section">
+            <div class="hero-section">
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <h1 class="hero-title">Jelajahi Rasa di Kota Kembang</h1>
+                    <p class="fs-5">Temukan destinasi kuliner paling hits dan viral di Bandung.</p>
+
+                    <div class="search-container">
+                        <input type="text" class="form-control" placeholder="Cari Bubur DPR, Sate Jando, dll...">
+                        <button class="btn btn-search">Cari</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold m-0">Rekomendasi Restoran</h3>
+                    <span class="text-muted" id="resto-count">Memuat restoran...</span>
+                </div>
+
+                <div id="restaurant-list" class="row g-4">
+                </div>
+            </div>
+        </div>
+
+        <div id="payment-section" class="container my-5" style="display: none;">
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <div class="action-card">
+                        <h3 class="fw-bold mb-4">Selesaikan Pembayaran</h3>
+
+                        <div class="alert alert-light border mb-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block">Order ID</small>
+                                <span id="display-order-id" class="fw-bold fs-5"></span>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block">Total Tagihan</small>
+                                <span class="fw-bold fs-5 text-primary">Rp <span id="display-amount"></span></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Pilih Metode Pembayaran</label>
+                            <select id="payment-method" class="form-select form-select-lg">
+                                <option value="BCA VA">BCA Virtual Account</option>
+                                <option value="QRIS">QRIS</option>
+                                <option value="Mandiri VA">Mandiri Virtual Account</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary w-100 py-3 fw-bold rounded-pill" onclick="processPayment()">Bayar
+                            Sekarang</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="history-section" class="container my-5" style="display: none;">
+            <div class="action-card">
+                <h3 class="fw-bold mb-4">Riwayat Pesanan Anda</h3>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Tanggal</th>
+                                <th>Total Harga</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-list">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const API_URL = 'http://localhost:3000/api';
+            const USER_ID = 2; // Simulasi ID user yang sedang login
+            let currentOrderId = null;
+            let currentAmount = 0;
+
+            // Tampilkan/Sembunyikan Section
+            function showSection(sectionId) {
+                document.getElementById('browse-section').style.display = 'none';
+                document.getElementById('payment-section').style.display = 'none';
+                document.getElementById('history-section').style.display = 'none';
+                document.getElementById(sectionId).style.display = 'block';
+                window.scrollTo(0, 0);
+            }
+
+            // 1. Ambil Data Restoran (GET)
+            async function fetchRestaurants() {
+                try {
+                    const response = await fetch(`${API_URL}/restaurants`);
+                    const result = await response.json();
+                    const list = document.getElementById('restaurant-list');
+                    const count = document.getElementById('resto-count');
+
+                    list.innerHTML = '';
+                    count.innerText = `${result.data.length} Restoran ditemukan`;
+
+                    // URL Gambar Dummy dari Unsplash untuk mempercantik card
+                    const placeholderImages = [
+                        'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=500&q=80',
+                        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80',
+                        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=500&q=80'
+                    ];
+
+                    result.data.forEach((rest, index) => {
+                        const imgUrl = placeholderImages[index % placeholderImages.length];
+                        list.innerHTML += `
+                            <div class="col-md-4">
+                                <div class="card restaurant-card h-100">
+                                    <img src="${imgUrl}" class="card-img-top" alt="${rest.name}">
+                                    <div class="card-body p-4">
+                                        <h5 class="card-title fw-bold mb-1">${rest.name}</h5>
+                                        <p class="card-text text-muted small mb-3">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                            ${rest.address}
+                                        </p>
+                                        <button class="btn btn-outline-primary w-100 rounded-pill fw-semibold" onclick="createDummyOrder(${rest.id})">
+                                            Pesan Sekarang (Rp 20.000)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } catch (error) {
+                    console.error("Gagal memuat restoran:", error);
+                }
+            }
+
+            // 2. Buat Pesanan (POST) -> Lanjut ke Payment
+            async function createDummyOrder(restaurantId) {
+                try {
+                    const response = await fetch(`${API_URL}/orders`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_id: USER_ID,
+                            restaurant_id: restaurantId,
+                            total_amount: 20000
+                        })
+                    });
+                    const result = await response.json();
+
+                    currentOrderId = result.order_id;
+                    currentAmount = 20000;
+
+                    document.getElementById('display-order-id').innerText = currentOrderId;
+                    document.getElementById('display-amount').innerText = currentAmount.toLocaleString('id-ID');
+
+                    showSection('payment-section');
+                } catch (error) {
+                    console.error("Gagal membuat order:", error);
+                }
+            }
+
+            // 3. Proses Pembayaran (POST & PUT)
+            async function processPayment() {
+                const method = document.getElementById('payment-method').value;
+
+                try {
+                    await fetch(`${API_URL}/payments`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ order_id: currentOrderId, payment_method: method, amount: currentAmount })
+                    });
+
+                    await fetch(`${API_URL}/payments/status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ order_id: currentOrderId, status: 'Paid' })
+                    });
+
+                    alert(`Pembayaran via ${method} Berhasil! Makanan Anda sedang diproses restoran.`);
+
+                    showSection('history-section');
+                    fetchHistory();
+
+                } catch (error) {
+                    console.error("Pembayaran gagal:", error);
+                }
+            }
+
+            // 4. Ambil Riwayat Pesanan (GET)
+            async function fetchHistory() {
+                try {
+                    const response = await fetch(`${API_URL}/orders?user_id=${USER_ID}`);
+                    const result = await response.json();
+                    const tbody = document.getElementById('history-list');
+                    tbody.innerHTML = '';
+
+                    result.data.forEach(order => {
+                        let badgeColor = order.status === 'Pending' ? 'bg-warning text-dark' :
+                            order.status === 'Diproses' ? 'bg-info text-dark' : 'bg-success';
+
+                        const date = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td class="fw-semibold">#${order.id}</td>
+                                <td class="text-muted">${date}</td>
+                                <td class="fw-semibold">Rp ${parseFloat(order.total_amount).toLocaleString('id-ID')}</td>
+                                <td><span class="badge ${badgeColor} rounded-pill px-3 py-2">${order.status}</span></td>
+                            </tr>
+                        `;
+                    });
+                } catch (error) {
+                    console.error("Gagal memuat riwayat:", error);
+                }
+            }
+
+            // Inisialisasi
+            fetchRestaurants();
+        </script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>
