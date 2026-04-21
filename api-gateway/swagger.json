@@ -1,0 +1,73 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Food Delivery System API",
+    "description": "API Documentation untuk tugas UTS Enterprise Application Integration",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "API Gateway"
+    }
+  ],
+  "paths": {
+    "/api/restaurants": {
+      "get": {
+        "summary": "Mendapatkan daftar restoran aktif",
+        "responses": {
+          "200": {
+            "description": "Berhasil mengambil data restoran"
+          }
+        }
+      },
+      "post": {
+        "summary": "Menambahkan restoran baru",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string" },
+                  "address": { "type": "string" },
+                  "is_active": { "type": "boolean" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Restoran berhasil ditambahkan"
+          }
+        }
+      }
+    },
+    "/api/payments/status": {
+      "put": {
+        "summary": "Memperbarui status pembayaran dan men-trigger Order Service",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "order_id": { "type": "integer" },
+                  "status": { "type": "string", "example": "Paid" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Pembayaran lunas, notifikasi ke Order Service berhasil"
+          }
+        }
+      }
+    }
+  }
+}

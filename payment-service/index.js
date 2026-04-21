@@ -1,24 +1,31 @@
 const express = require('express');
-const axios = require('axios'); // Digunakan untuk memanggil Order Service
+const axios = require('axios'); 
 const mysql = require('mysql2');
 const app = express();
 app.use(express.json());
 
-// Koneksi ke db_payment
 const db = mysql.createConnection({ host: 'localhost', user: 'root', password: '', database: 'db_payment' });
 
-// Skenario Integrasi: Verifikasi Pembayaran & Update Order
+app.post('/api/payments', (req, res) => {
+    const { order_id, payment_method, amount } = req.body;
+    const va_number = '88' + Math.floor(1000000000 + Math.random() * 9000000000); 
+    
+    db.query('INSERT INTO payments (order_id, payment_method, va_number, amount, status) VALUES (?, ?, ?, ?, "Unpaid")', 
+    [order_id, payment_method, va_number, amount], 
+    (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({ message: "Tagihan berhasil dibuat", va_number: va_number });
+    });
+});
+
 app.put('/api/payments/status', (req, res) => {
     const { order_id, status } = req.body; 
 
-    // 1. Update status di database Payment (Unpaid -> Paid)
     db.query('UPDATE payments SET status = ? WHERE order_id = ?', [status, order_id], async (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
 
-        // 2. INTER-SERVICE COMMUNICATION: Jika sukses, panggil API Order Service
         if (status === 'Paid') {
             try {
-                // Memanggil endpoint Order Service untuk mengubah status pesanan jadi 'Diproses'
                 await axios.put(`http://localhost:3002/api/orders/status`, {
                     order_id: order_id,
                     status: 'Diproses'
