@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal CariMakanBDG</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+       
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: #ffffff; height: 100vh; display: flex; overflow: hidden; }
+        .image-section { flex: 1.2; background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=2047&auto=format&fit=crop') center/cover no-repeat; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; padding: 40px; text-align: center; }
+        .form-section { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 80px; transition: 0.3s; }
+        .brand-logo { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 40px; text-decoration: none; }
+        .form-header h2 { font-size: 2rem; color: #111827; margin-bottom: 8px; }
+        .form-header p { color: #6b7280; font-size: 1rem; margin-bottom: 30px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 8px; }
+        .input-wrapper { position: relative; }
+        .input-wrapper i.icon-left { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+        .input-wrapper input { width: 100%; padding: 14px 16px 14px 45px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 1rem; outline: none; background-color: #f9fafb; }
+        .input-wrapper input:focus { border-color: #3ba4f6; box-shadow: 0 0 0 4px rgba(59, 164, 246, 0.1); }
+        .btn-main { width: 100%; padding: 14px; background-color: #3ba4f6; color: white; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-main:hover { background-color: #2589d6; }
+        .status-alert { display: none; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 0.875rem; align-items: center; gap: 10px; }
+        .status-error { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .status-success { background-color: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .toggle-link { text-align: center; margin-top: 25px; font-size: 0.875rem; color: #6b7280; }
+        .toggle-link span { color: #3ba4f6; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="image-section">
+        <h1>CariMakanBDG</h1>
+        <p>Jelajahi ribuan rasa dan temukan destinasi kuliner terbaik di setiap sudut Kota Bandung.</p>
+    </div>
+
+    <div class="form-section fade-in" id="auth-container">
+        <a href="#" class="brand-logo">CariMakanBDG</a>
+
+        <div id="login-view">
+            <div class="form-header">
+                <h2>Selamat Datang</h2>
+                <p>Silakan masuk ke akun Anda</p>
+            </div>
+            <div id="login-alert" class="status-alert"></div>
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Username</label>
+                    <div class="input-wrapper">
+                        <i class="fa-regular fa-user icon-left"></i>
+                        <input type="text" id="l-username" placeholder="Nama pengguna" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Kata Sandi</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock icon-left"></i>
+                        <input type="password" id="l-password" placeholder="Kata sandi" required>
+                        <i class="fa-regular fa-eye-slash" id="eye-login" style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #9ca3af;"></i>
+                    </div>
+                </div>
+                <button type="submit" class="btn-main">Masuk Sekarang</button>
+            </form>
+            <p class="toggle-link">Belum punya akun? <span id="link-to-reg">Daftar sebagai Pelanggan</span></p>
+        </div>
+
+        <div id="register-view" style="display: none;">
+            <div class="form-header">
+                <h2>Daftar Akun</h2>
+                <p>Mulai perjalanan kulinermu di sini</p>
+            </div>
+            <div id="reg-alert" class="status-alert"></div>
+            <form id="register-form">
+                <div class="input-group">
+                    <label>Nama Lengkap</label>
+                    <div class="input-wrapper">
+                        <i class="fa-regular fa-user icon-left"></i>
+                        <input type="text" id="r-username" placeholder="Nama baru" required>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Kata Sandi</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-lock icon-left"></i>
+                        <input type="password" id="r-password" placeholder="Buat kata sandi" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-main">Daftar Sekarang</button>
+            </form>
+            <p class="toggle-link">Sudah punya akun? <span id="link-to-login">Kembali Login</span></p>
+        </div>
+    </div>
+
+    <script src="js/login.js"></script>
+</body>
+</html>
