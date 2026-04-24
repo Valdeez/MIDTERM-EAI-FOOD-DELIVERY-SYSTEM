@@ -1,5 +1,16 @@
 {
   "dependencies": {
     "cors": "^2.8.6"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "scripts": {
+    "start:gateway": "cd api-gateway && node index.js",
+    "start:user": "cd user-service && node index.js",
+    "start:restaurant": "cd restaurant-service && node index.js",
+    "start:order": "cd order-service && node index.js",
+    "start:payment": "cd payment-service && node index.js",
+    "start:all": "concurrently \"npm run start:gateway\" \"npm run start:user\" \"npm run start:restaurant\" \"npm run start:order\" \"npm run start:payment\""
   }
 }
