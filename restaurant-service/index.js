@@ -1,9 +1,32 @@
 const express = require("express");
 const mysql = require("mysql2");
+const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const app = express();
-app.use(express.json());
 
-// Menambahkan ini agar folder 'public' bisa diakses lewat URL (untuk gambar lokal)
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const uploadDir = "public/uploads";
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Konfigurasi Multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads/");
+  },
+  filename: (req, file, cb) => {
+    // Memberi nama unik: timestamp + ekstensi asli
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage: storage });
 app.use("/public", express.static("public"));
 
 const db = mysql.createConnection({
@@ -43,39 +66,31 @@ app.get("/api/restaurants/detail", (req, res) => {
   });
 });
 
-app.post("/api/restaurants", (req, res) => {
-  // Menambahkan ekstraksi data baru dari body
-  const {
-    name,
-    address,
-    is_active,
-    image,
-    deskripsi,
-    jam_operasional,
-    rating,
-  } = req.body;
+app.post("/api/restaurants", upload.single("image"), (req, res) => {
+  const { name, address, is_active, deskripsi, jam_operasional, rating } = req.body;
 
-  // Memperbarui query INSERT dengan kolom baru
+  // Ambil path file yang baru saja diupload
+  const imagePath = req.file ? `/public/uploads/${req.file.filename}` : null;
+
   db.query(
     "INSERT INTO restaurants (name, address, is_active, image, deskripsi, jam_operasional, rating) VALUES (?, ?, ?, ?, ?, ?, ?)",
     [
       name,
       address,
       is_active !== undefined ? is_active : true,
-      image || null,
+      imagePath, // Simpan path gambar ke DB
       deskripsi || null,
       jam_operasional || null,
       rating || null,
     ],
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
-      res
-        .status(201)
-        .json({
-          message: "Restoran berhasil ditambahkan",
-          id: results.insertId,
-        });
-    },
+      res.status(201).json({
+        message: "Restoran berhasil ditambahkan dengan gambar",
+        id: results.insertId,
+        imageUrl: imagePath,
+      });
+    }
   );
 });
 
