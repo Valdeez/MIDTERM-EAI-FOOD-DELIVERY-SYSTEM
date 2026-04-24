@@ -13,17 +13,31 @@ const db = mysql.createConnection({
   database: "db_order",
 });
 
-app.put("/api/orders/status", (req, res) => {
-  const { order_id, status } = req.body;
+// app.put("/api/orders/status", (req, res) => {
+//   const { order_id, status } = req.body;
+
+//   db.query(
+//     "UPDATE orders SET status = ? WHERE id = ?",
+//     [status, order_id],
+//     (err, results) => {
+//       if (err) return res.status(500).json({ error: err.message });
+//       res.json({
+//         message: `Status pesanan ${order_id} berhasil diubah menjadi ${status}`,
+//       });
+//     },
+//   );
+// });
+
+app.put("/api/orders/:id", (req, res) => {
+  const orderId = req.params.id;
+  const { status } = req.body; // 'Pending', 'Diproses', atau 'Selesai'
 
   db.query(
     "UPDATE orders SET status = ? WHERE id = ?",
-    [status, order_id],
+    [status, orderId],
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({
-        message: `Status pesanan ${order_id} berhasil diubah menjadi ${status}`,
-      });
+      res.json({ message: "Status pesanan berhasil diperbarui" });
     },
   );
 });
