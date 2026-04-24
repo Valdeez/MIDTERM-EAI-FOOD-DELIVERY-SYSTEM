@@ -5,7 +5,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CariMakanBDG - Pembayaran</title>
-<<<<<<< Updated upstream
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -18,11 +17,6 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
     />
-=======
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
->>>>>>> Stashed changes
 
     <style>
         body {
@@ -43,7 +37,6 @@
             margin-left: 1rem;
         }
 
-<<<<<<< Updated upstream
       /* Card Styling */
       .action-card {
         border-radius: 16px;
@@ -103,73 +96,11 @@
       .btn-pay:hover {
         transform: translateY(-2px);
       }
-=======
-        /* Card Styling */
-        .action-card {
-            border-radius: 16px;
-            border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            background: white;
-            padding: 2.5rem 2rem;
-        }
-
-        /* Payment Method Selectors */
-        .payment-option {
-            border: 1px solid #dee2e6;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-        }
-
-        .payment-option:hover {
-            background-color: #f8f9fa;
-            border-color: #babbbc;
-        }
-
-        /* Hide the default radio button */
-        .payment-option input[type="radio"] {
-            display: none;
-        }
-
-        /* Custom Radio Checked State */
-        .payment-option input[type="radio"]:checked+.payment-content {
-            font-weight: 600;
-        }
-
-        .payment-option.selected {
-            border-color: #0d6efd;
-            background-color: #f0f7ff;
-        }
-
-        .payment-icon {
-            font-size: 1.5rem;
-            margin-right: 15px;
-            color: #0d6efd;
-        }
-
-        /* Button Styling */
-        .btn-pay {
-            border-radius: 50px;
-            padding: 14px 20px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: transform 0.2s ease;
-        }
-
-        .btn-pay:hover {
-            transform: translateY(-2px);
-        }
->>>>>>> Stashed changes
     </style>
 </head>
 
 <body>
     <nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top py-3">
-<<<<<<< Updated upstream
       <div class="container">
         <a class="navbar-brand" href="home.html">CariMakanBDG</a>
         <button
@@ -192,28 +123,10 @@
               <a class="nav-link" href="history.html">Riwayat Pesanan</a>
             </li>
           </ul>
-=======
-        <div class="container">
-            <a class="navbar-brand" href="home.html">CariMakanBDG</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="home.html">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="history.html">Riwayat Pesanan</a>
-                    </li>
-                </ul>
-            </div>
->>>>>>> Stashed changes
         </div>
     </nav>
 
     <div class="container my-5">
-<<<<<<< Updated upstream
       <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
           <div class="action-card">
@@ -316,85 +229,10 @@
           </div>
         </div>
       </div>
-=======
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="action-card">
-                    <div class="text-center mb-4">
-                        <h3 class="fw-bold m-0">Pembayaran</h3>
-                        <p class="text-muted small mt-1">
-                            Selesaikan pesanan Anda dalam waktu
-                            <span class="text-danger fw-bold" id="countdown">14:59</span>
-                        </p>
-                    </div>
-
-                    <div
-                        class="alert alert-light border rounded-3 mb-4 p-3 d-flex justify-content-between align-items-center">
-                        <div>
-                            <small class="text-muted d-block mb-1">Order ID</small>
-                            <span id="display-order-id" class="fw-bold fs-6">#CMB-982734</span>
-                        </div>
-                        <div class="text-end">
-                            <small class="text-muted d-block mb-1">Total Tagihan</small>
-                            <span class="fw-bold fs-5 text-primary">Rp <span id="display-amount">35.000</span></span>
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <h6 class="fw-semibold mb-3">Pilih Metode Pembayaran</h6>
-
-                        <label class="payment-option selected" id="opt-qris">
-                            <input type="radio" name="paymentMethod" value="QRIS" checked
-                                onchange="selectPayment('opt-qris')" />
-                            <div class="payment-content d-flex align-items-center w-100">
-                                <i class="bi bi-qr-code-scan payment-icon"></i>
-                                <div>
-                                    <span class="d-block">QRIS (Gopay, OVO, Dana, LinkAja)</span>
-                                    <small class="text-muted fw-normal">Proses instan</small>
-                                </div>
-                                <i class="bi bi-check-circle-fill text-primary ms-auto fs-5 check-icon"></i>
-                            </div>
-                        </label>
-
-                        <label class="payment-option" id="opt-bca">
-                            <input type="radio" name="paymentMethod" value="BCA VA"
-                                onchange="selectPayment('opt-bca')" />
-                            <div class="payment-content d-flex align-items-center w-100">
-                                <i class="bi bi-bank payment-icon"></i>
-                                <div>
-                                    <span class="d-block">BCA Virtual Account</span>
-                                    <small class="text-muted fw-normal">Dicek otomatis</small>
-                                </div>
-                                <i class="bi bi-check-circle-fill text-primary ms-auto fs-5 check-icon d-none"></i>
-                            </div>
-                        </label>
-
-                        <label class="payment-option" id="opt-mandiri">
-                            <input type="radio" name="paymentMethod" value="Mandiri VA"
-                                onchange="selectPayment('opt-mandiri')" />
-                            <div class="payment-content d-flex align-items-center w-100">
-                                <i class="bi bi-bank2 payment-icon"></i>
-                                <div>
-                                    <span class="d-block">Mandiri Virtual Account</span>
-                                    <small class="text-muted fw-normal">Dicek otomatis</small>
-                                </div>
-                                <i class="bi bi-check-circle-fill text-primary ms-auto fs-5 check-icon d-none"></i>
-                            </div>
-                        </label>
-                    </div>
-
-                    <button id="pay-btn" class="btn btn-primary btn-pay w-100 mt-2" onclick="processPayment()">
-                        Bayar Sekarang
-                    </button>
-                </div>
-            </div>
-        </div>
->>>>>>> Stashed changes
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-<<<<<<< Updated upstream
       // Variabel global untuk menyimpan ID restoran
       let restaurantIdToReturn = null;
 
@@ -472,83 +310,3 @@
     </script>
   </body>
 </html>
-=======
-        // Variabel global untuk menyimpan ID restoran
-        let restaurantIdToReturn = null;
-
-        document.addEventListener("DOMContentLoaded", () => {
-            // Ambil data dari URL Parameter
-            const urlParams = new URLSearchParams(window.location.search);
-            const savedOrderId = urlParams.get("order_id");
-            const savedAmount = urlParams.get("amount");
-            restaurantIdToReturn = urlParams.get("restaurant_id");
-
-            // Render Data ke Layar
-            if (savedAmount) {
-                document.getElementById("display-amount").innerText =
-                    parseFloat(savedAmount).toLocaleString("id-ID");
-            }
-            if (savedOrderId) {
-                document.getElementById("display-order-id").innerText =
-                    `#${savedOrderId}`;
-            }
-
-            // Atur link tombol kembali (Back)
-            const backBtn = document.getElementById("back-link");
-            if (restaurantIdToReturn) {
-                backBtn.href = `detail.html?id=${restaurantIdToReturn}`;
-            } else {
-                backBtn.href = "home.html"; // Fallback jika tidak ada parameter
-            }
-
-            startTimer(14, 59);
-        });
-
-        // ... (fungsi selectPayment, processPayment, dan startTimer biarkan tetap sama seperti kodinganmu) ...
-
-        function selectPayment(selectedId) {
-            const options = document.querySelectorAll(".payment-option");
-            options.forEach((opt) => {
-                opt.classList.remove("selected");
-                opt.querySelector(".check-icon").classList.add("d-none");
-            });
-
-            const selectedOpt = document.getElementById(selectedId);
-            selectedOpt.classList.add("selected");
-            selectedOpt.querySelector(".check-icon").classList.remove("d-none");
-        }
-
-        function processPayment() {
-            const btn = document.getElementById("pay-btn");
-            const selectedMethod = document.querySelector(
-                'input[name="paymentMethod"]:checked',
-            ).value;
-
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Memproses...`;
-            btn.classList.add("disabled");
-
-            setTimeout(() => {
-                // Simulasi pembayaran selesai
-                alert(`Pembayaran menggunakan ${selectedMethod} berhasil!`);
-                window.location.href = "history.html";
-            }, 2000);
-        }
-
-        function startTimer(minutes, seconds) {
-            let time = minutes * 60 + seconds;
-            const display = document.getElementById("countdown");
-
-            setInterval(() => {
-                let m = Math.floor(time / 60);
-                let s = time % 60;
-                m = m < 10 ? "0" + m : m;
-                s = s < 10 ? "0" + s : s;
-                display.innerHTML = m + ":" + s;
-                if (time > 0) time--;
-            }, 1000);
-        }
-    </script>
-</body>
-
-</html>
->>>>>>> Stashed changes
