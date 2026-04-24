@@ -140,18 +140,30 @@ app.get("/api/menus/detail", (req, res) => {
   );
 });
 
-app.post("/api/menus", (req, res) => {
-  const { restaurant_id, name, price, description, image } = req.body;
+app.post("/api/menus", upload.single("image"), (req, res) => {
+  const { restaurant_id, name, price, description } = req.body;
+
+  // Ambil path gambar dari multer
+  const imagePath = req.file ? `/public/uploads/${req.file.filename}` : null;
 
   db.query(
     "INSERT INTO menus (restaurant_id, name, price, description, image) VALUES (?, ?, ?, ?, ?)",
-    [restaurant_id, name, price, description, image || null],
+    [
+      restaurant_id,
+      name,
+      price,
+      description || null,
+      imagePath, 
+    ],
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
-      res
-        .status(201)
-        .json({ message: "Menu berhasil ditambahkan", id: results.insertId });
-    },
+
+      res.status(201).json({
+        message: "Menu berhasil ditambahkan dengan gambar",
+        id: results.insertId,
+        imageUrl: imagePath, 
+      });
+    }
   );
 });
 
