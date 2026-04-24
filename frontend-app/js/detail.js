@@ -206,7 +206,8 @@ window.handleCheckout = async function () {
 
     // --- PROSES 3: LEMPAR KE HALAMAN PAYMENT ---
     // Bawa data order_id dan amount lewat URL
-    window.location.href = `payment.html?order_id=${newOrderId}&amount=${totalAmount}`;
+    // Ganti baris "window.location.href" di detail.js kamu dengan baris ini:
+    window.location.href = `payment.html?order_id=${newOrderId}&amount=${totalAmount}&restaurant_id=${currentRestaurantId}`;
   } catch (error) {
     console.error("Checkout error:", error);
     alert(`Terjadi kesalahan: ${error.message}`);
