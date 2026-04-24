@@ -1,20 +1,45 @@
 // home.js
 
 document.addEventListener("DOMContentLoaded", () => {
+  // 1. Muat semua restoran saat halaman pertama kali dibuka
   fetchRestaurants();
+
+  // 2. Tangkap aksi form pencarian
+  const searchForm = document.getElementById("searchForm");
+  searchForm.addEventListener("submit", (e) => {
+    e.preventDefault(); // Cegah halaman reload
+    const keyword = document.getElementById("searchInput").value;
+    fetchRestaurants(keyword); // Panggil ulang API dengan kata kunci
+  });
 });
 
-async function fetchRestaurants() {
-  try {
-    // Pastikan port sesuai dengan backend Anda yaitu 3001
-    const response = await fetch("http://localhost:3001/api/restaurants");
-    const result = await response.json();
+async function fetchRestaurants(keyword = "") {
+  const container = document.getElementById("restaurant-container");
+  const countLabel = document.querySelector(".text-muted.small");
 
-    if (result.data) {
-      renderRestaurants(result.data);
-    }
+  // Tampilkan animasi loading
+  container.innerHTML =
+    '<div class="text-center w-100 py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Memuat restoran...</p></div>';
+
+  try {
+    // Tentukan URL. Jika keyword ada, tambahkan query parameter
+    const baseUrl = "http://localhost:3001/api/restaurants";
+    const url = keyword
+      ? `${baseUrl}?search=${encodeURIComponent(keyword)}`
+      : baseUrl;
+
+    const response = await fetch(url);
+    const result = await response.json();
+    const restaurants = result.data || [];
+
+    // Update teks jumlah restoran yang ditemukan
+    countLabel.innerText = `${restaurants.length} Restoran ditemukan`;
+
+    renderRestaurants(restaurants);
   } catch (error) {
-    console.error("Gagal mengambil data restoran:", error);
+    console.error("Gagal mengambil data:", error);
+    container.innerHTML =
+      '<div class="alert alert-danger w-100">Gagal memuat data restoran. Pastikan server port 3001 berjalan.</div>';
   }
 }
 
@@ -41,7 +66,7 @@ function renderRestaurants(restaurants) {
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="badge ${resto.is_active ? "bg-success" : "bg-danger"} small">
-                                ${resto.is_active ? "Open" : "Closed"}
+                                ${resto.is_active ? "Buka" : "Tutup"}
                             </span>
                         </div>
                         <h5 class="fw-bold mb-1">${resto.name}</h5>
