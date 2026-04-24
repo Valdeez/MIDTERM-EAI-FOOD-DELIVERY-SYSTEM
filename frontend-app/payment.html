@@ -95,32 +95,102 @@
       .btn-pay:hover {
         transform: translateY(-2px);
       }
+      .btn-login-nav {
+        background-color: #3ba4f6;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 7px 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: background-color 0.2s;
+      }
+      .btn-login-nav:hover {
+        background-color: #2b8bda;
+        color: white;
+      }
+      .user-greeting {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: #1a1a1a;
+      }
+      .user-greeting .avatar {
+        width: 32px;
+        height: 32px;
+        background-color: #3ba4f6;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+      }
+      .btn-logout-modern {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background-color: #fff1f2; /* Warna latar merah sangat muda */
+        color: #e11d48; /* Warna teks rose/merah gelap */
+        border: 1px solid #fecdd3; /* Border tipis senada */
+        padding: 8px 18px;
+        border-radius: 12px; /* Sudut membulat modern */
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+
+      .btn-logout-modern:hover {
+        background-color: #e11d48; /* Berubah jadi merah penuh saat hover */
+        color: #ffffff;
+        border-color: #e11d48;
+        transform: translateY(-2px); /* Efek melayang sedikit */
+        box-shadow: 0 6px 15px rgba(225, 29, 72, 0.25);
+      }
+
+      .btn-logout-modern i {
+        font-size: 1.1rem;
+        transition: transform 0.3s ease;
+      }
+
+      .btn-logout-modern:hover i {
+        transform: translateX(3px); /* Ikon panah bergeser sedikit ke kanan saat hover */
+      }
     </style>
   </head>
 
   <body>
-    <nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top py-3">
+    <nav
+      class="navbar navbar-expand-lg navbar-light bg-white border-bottom py-3 mb-5 sticky-top"
+    >
       <div class="container">
-        <a class="navbar-brand" href="home.html">CariMakanBDG</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
+        <a class="navbar-brand fw-bold text-dark" href="home.html"
+          >CariMakan<span class="text-primary">BDG</span></a
         >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div
-          class="collapse navbar-collapse justify-content-end"
-          id="navbarNav"
-        >
-          <ul class="navbar-nav">
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto align-items-center gap-3">
             <li class="nav-item">
-              <a class="nav-link" href="home.html">Home</a>
+              <a
+                class="nav-link text-dark fw-medium px-3 active"
+                href="home.html"
+                >Home</a
+              >
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="history.html">Riwayat Pesanan</a>
+            <li class="nav-item d-none" id="nav-history">
+              <a class="nav-link text-dark fw-medium" href="history.html">
+                <i class="me-1"></i>Histori Pesanan
+              </a>
             </li>
+
+            <li class="nav-item" id="nav-auth">
+              </li>
+
           </ul>
         </div>
       </div>
@@ -230,13 +300,33 @@
         </div>
       </div>
     </div>
-
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+          <div class="modal-header border-0 pb-0">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <div class="mb-3">
+              <i class="bi bi-box-arrow-right text-danger" style="font-size: 3.5rem;"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Konfirmasi Keluar</h5>
+            <p class="text-muted mb-0">Apakah kamu yakin ingin keluar dari akun ini?</p>
+          </div>
+          <div class="modal-footer border-0 pt-0 pb-4 justify-content-center gap-2">
+            <button type="button" class="btn btn-light px-4 fw-medium" data-bs-dismiss="modal" style="border-radius: 10px;">Batal</button>
+            <button type="button" class="btn btn-danger px-4 fw-medium" onclick="executeLogout()" style="border-radius: 10px;">Ya, Keluar</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
       // Variabel global untuk menyimpan ID restoran
       let restaurantIdToReturn = null;
 
       document.addEventListener("DOMContentLoaded", () => {
+        updateNavbar();
         // Ambil data dari URL Parameter
         const urlParams = new URLSearchParams(window.location.search);
         const savedOrderId = urlParams.get("order_id");
@@ -250,7 +340,7 @@
         }
         if (savedOrderId) {
           document.getElementById("display-order-id").innerText =
-            `#${savedOrderId}`;
+            `#ORD-${savedOrderId}`;
         }
 
         // Atur link tombol kembali (Back)
@@ -263,6 +353,57 @@
 
         startTimer(14, 59);
       });
+
+      function updateNavbar() {
+        const navAuth = document.getElementById("nav-auth");
+        const sessionRaw = localStorage.getItem("user_session");
+        const navHistory = document.getElementById("nav-history");
+
+        if (sessionRaw) {
+          // User sudah login → tampilkan avatar + nama + tombol logout
+          const user = JSON.parse(sessionRaw);
+          const firstName = user.name ? user.name.split(" ")[0] : "User";
+          const initial = firstName.charAt(0).toUpperCase();
+          if (navHistory) {
+            navHistory.classList.remove("d-none");
+          }
+          navAuth.innerHTML = `
+            <div class="user-greeting">
+            
+            <span class="fw-bold text-dark" style="font-size: 1.15rem;">Hi, ${firstName}!</span>
+              <button class="btn-logout-modern" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                <i class="bi bi-box-arrow-right"></i>
+              </button>
+            </div>
+          
+          `;
+        } else {
+          // User belum login → tampilkan tombol Login
+          if (navHistory) {
+            navHistory.classList.add("d-none");
+          }
+          navAuth.innerHTML = `
+            <a href="login.html" class="btn-login-nav shadow-sm">
+              <i class="bi bi-person-circle me-1"></i> Masuk
+            </a>
+          `;
+        }
+      }
+
+      function executeLogout() {
+        localStorage.removeItem("user_session");
+        
+        // (Opsional) Tutup modal secara manual sebelum pindah halaman, biar transisinya lebih mulus
+        const modalElement = document.getElementById('logoutModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        if (modalInstance) {
+            modalInstance.hide();
+        }
+
+        // Pindah ke halaman login
+        window.location.href = "login.html";
+      }
+
 
       // ... (fungsi selectPayment, processPayment, dan startTimer biarkan tetap sama seperti kodinganmu) ...
 
