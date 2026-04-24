@@ -215,7 +215,9 @@
       }
 
       .btn-logout-modern:hover i {
-        transform: translateX(3px); /* Ikon panah bergeser sedikit ke kanan saat hover */
+        transform: translateX(
+          3px
+        ); /* Ikon panah bergeser sedikit ke kanan saat hover */
       }
     </style>
   </head>
@@ -225,7 +227,12 @@
         <a class="navbar-brand fw-bold text-dark" href="home.html"
           >CariMakan<span class="text-primary">BDG</span></a
         >
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
           <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -238,36 +245,73 @@
                 >Home</a
               >
             </li>
-            
+
             <li class="nav-item d-none" id="nav-history">
               <a class="nav-link text-dark fw-medium" href="history.html">
                 <i class="me-1"></i>Histori Pesanan
               </a>
             </li>
 
-            <li class="nav-item" id="nav-auth">
-              </li>
-
+            <li class="nav-item" id="nav-auth"></li>
           </ul>
         </div>
       </div>
     </nav>
-    <div class="modal fade" id="logoutModal" tabindex="-5" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="logoutModal"
+      tabindex="-5"
+      aria-labelledby="logoutModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <div
+          class="modal-content"
+          style="
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+          "
+        >
           <div class="modal-header border-0 pb-0">
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body text-center py-4">
             <div class="mb-3">
-              <i class="bi bi-box-arrow-right text-danger" style="font-size: 3.5rem;"></i>
+              <i
+                class="bi bi-box-arrow-right text-danger"
+                style="font-size: 3.5rem"
+              ></i>
             </div>
             <h5 class="fw-bold mb-2">Konfirmasi Keluar</h5>
-            <p class="text-muted mb-0">Apakah kamu yakin ingin keluar dari akun ini?</p>
+            <p class="text-muted mb-0">
+              Apakah kamu yakin ingin keluar dari akun ini?
+            </p>
           </div>
-          <div class="modal-footer border-0 pt-0 pb-4 justify-content-center gap-2">
-            <button type="button" class="btn btn-light px-4 fw-medium" data-bs-dismiss="modal" style="border-radius: 10px;">Batal</button>
-            <button type="button" class="btn btn-danger px-4 fw-medium" onclick="executeLogout()" style="border-radius: 10px;">Ya, Keluar</button>
+          <div
+            class="modal-footer border-0 pt-0 pb-4 justify-content-center gap-2"
+          >
+            <button
+              type="button"
+              class="btn btn-light px-4 fw-medium"
+              data-bs-dismiss="modal"
+              style="border-radius: 10px"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger px-4 fw-medium"
+              onclick="executeLogout()"
+              style="border-radius: 10px"
+            >
+              Ya, Keluar
+            </button>
           </div>
         </div>
       </div>
@@ -358,22 +402,59 @@
         </div>
       </div>
     </div>
-    <div class="modal fade" id="loginRequiredModal" tabindex="-1" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="loginRequiredModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <div
+          class="modal-content"
+          style="
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+          "
+        >
           <div class="modal-header border-0 pb-0">
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body text-center py-4">
             <div class="mb-3">
-              <i class="bi bi-shield-lock text-warning" style="font-size: 3.5rem;"></i>
+              <i
+                class="bi bi-shield-lock text-warning"
+                style="font-size: 3.5rem"
+              ></i>
             </div>
             <h5 class="fw-bold mb-2">Ups, Kamu Belum Login!</h5>
-            <p class="text-muted mb-0">Untuk melakukan pemesanan, silakan masuk ke akun kamu terlebih dahulu ya.</p>
+            <p class="text-muted mb-0">
+              Untuk melakukan pemesanan, silakan masuk ke akun kamu terlebih
+              dahulu ya.
+            </p>
           </div>
-          <div class="modal-footer border-0 pt-0 pb-4 justify-content-center gap-2">
-            <button type="button" class="btn btn-light px-4 fw-medium" data-bs-dismiss="modal" style="border-radius: 10px;">Nanti Saja</button>
-            <a href="login.html" class="btn btn-primary px-4 fw-medium" style="border-radius: 10px;">Masuk / Daftar</a>
+          <div
+            class="modal-footer border-0 pt-0 pb-4 justify-content-center gap-2"
+          >
+            <button
+              type="button"
+              class="btn btn-light px-4 fw-medium"
+              data-bs-dismiss="modal"
+              style="border-radius: 10px"
+            >
+              Nanti Saja
+            </button>
+            <a
+              href="login.html"
+              class="btn btn-primary px-4 fw-medium"
+              style="border-radius: 10px"
+              >Masuk / Daftar</a
+            >
           </div>
         </div>
       </div>

@@ -58,18 +58,17 @@ function updateNavbar() {
 
 function executeLogout() {
   localStorage.removeItem("user_session");
-  
+
   // (Opsional) Tutup modal secara manual sebelum pindah halaman, biar transisinya lebih mulus
-  const modalElement = document.getElementById('logoutModal');
+  const modalElement = document.getElementById("logoutModal");
   const modalInstance = bootstrap.Modal.getInstance(modalElement);
   if (modalInstance) {
-      modalInstance.hide();
+    modalInstance.hide();
   }
 
   // Pindah ke halaman login
   window.location.href = "login.html";
 }
-
 
 // 1. Ambil Detail Restoran
 async function fetchRestaurantDetail(id) {
@@ -206,9 +205,11 @@ window.handleCheckout = async function () {
   const sessionRaw = localStorage.getItem("user_session");
   if (!sessionRaw) {
     // Panggil modal peringatan login yang sudah kita buat di HTML
-    const loginModal = new bootstrap.Modal(document.getElementById('loginRequiredModal'));
+    const loginModal = new bootstrap.Modal(
+      document.getElementById("loginRequiredModal"),
+    );
     loginModal.show();
-    
+
     return; // Hentikan proses fungsi sampai di sini
   }
   const user = JSON.parse(sessionRaw);
