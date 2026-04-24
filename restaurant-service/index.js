@@ -43,14 +43,32 @@ db.connect((err) => {
 
 // --- RESTAURANT ENDPOINTS ---
 
+// app.get("/api/restaurants", (req, res) => {
+//   db.query(
+//     "SELECT * FROM restaurants WHERE is_active = true",
+//     (err, results) => {
+//       if (err) return res.status(500).json({ error: err.message });
+//       res.json({ message: "Berhasil mengambil data restoran", data: results });
+//     },
+//   );
+// });
+
 app.get("/api/restaurants", (req, res) => {
-  db.query(
-    "SELECT * FROM restaurants WHERE is_active = true",
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: "Berhasil mengambil data restoran", data: results });
-    },
-  );
+  const { search } = req.query; // Menangkap kata kunci dari URL
+
+  let sqlQuery = "SELECT * FROM restaurants WHERE is_active = true";
+  let queryParams = [];
+
+  // Jika ada parameter search, tambahkan filter LIKE untuk mencari nama yang mirip
+  if (search) {
+    sqlQuery += " AND name LIKE ?";
+    queryParams.push(`%${search}%`);
+  }
+
+  db.query(sqlQuery, queryParams, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: "Berhasil mengambil data restoran", data: results });
+  });
 });
 
 app.get("/api/restaurants/detail", (req, res) => {
@@ -67,7 +85,8 @@ app.get("/api/restaurants/detail", (req, res) => {
 });
 
 app.post("/api/restaurants", upload.single("image"), (req, res) => {
-  const { name, address, is_active, deskripsi, jam_operasional, rating } = req.body;
+  const { name, address, is_active, deskripsi, jam_operasional, rating } =
+    req.body;
 
   // Ambil path file yang baru saja diupload
   const imagePath = req.file ? `/public/uploads/${req.file.filename}` : null;
@@ -90,19 +109,19 @@ app.post("/api/restaurants", upload.single("image"), (req, res) => {
         id: results.insertId,
         imageUrl: imagePath,
       });
-    }
+    },
   );
 });
 
 // --- MENU ENDPOINTS ---
 
 // GET semua menu
-app.get('/api/menus', (req, res) => {
-    db.query('SELECT * FROM menus', (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
+app.get("/api/menus", (req, res) => {
+  db.query("SELECT * FROM menus", (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
 
-        res.json({ message: "Berhasil mengambil data menu", data: results });
-    });
+    res.json({ message: "Berhasil mengambil data menu", data: results });
+  });
 });
 
 app.put("/api/menus/:id", (req, res) => {
@@ -115,12 +134,10 @@ app.put("/api/menus/:id", (req, res) => {
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       if (results.affectedRows === 0) {
-        return res
-          .status(403)
-          .json({
-            message:
-              "Akses ditolak: Menu bukan milik restoran Anda atau menu tidak ditemukan",
-          });
+        return res.status(403).json({
+          message:
+            "Akses ditolak: Menu bukan milik restoran Anda atau menu tidak ditemukan",
+        });
       }
       res.json({ message: "Data menu berhasil diperbarui oleh kru" });
     },
@@ -143,58 +160,58 @@ app.get("/api/menus/detail", (req, res) => {
 });
 
 // POST tambah menu
-app.post('/api/menus', (req, res) => {
-    const { restaurant_id, name, price, description } = req.body;
+app.post("/api/menus", (req, res) => {
+  const { restaurant_id, name, price, description } = req.body;
 
-    db.query(
-        'INSERT INTO menus (restaurant_id, name, price, description) VALUES (?, ?, ?, ?)',
-        [restaurant_id, name, price, description],
-        (err, results) => {
-            if (err) return res.status(500).json({ error: err.message });
+  db.query(
+    "INSERT INTO menus (restaurant_id, name, price, description) VALUES (?, ?, ?, ?)",
+    [restaurant_id, name, price, description],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
 
-            res.status(201).json({
-                message: "Menu berhasil ditambahkan",
-                id: results.insertId
-            });
-        }
-    );
+      res.status(201).json({
+        message: "Menu berhasil ditambahkan",
+        id: results.insertId,
+      });
+    },
+  );
 });
 
 // PUT update menu
-app.put('/api/menus/:id', (req, res) => {
-    const menuId = req.params.id;
-    const { name, price, description, restaurant_id } = req.body;
+app.put("/api/menus/:id", (req, res) => {
+  const menuId = req.params.id;
+  const { name, price, description, restaurant_id } = req.body;
 
-    db.query(
-        'UPDATE menus SET name = ?, price = ?, description = ? WHERE id = ? AND restaurant_id = ?',
-        [name, price, description, menuId, restaurant_id],
-        (err, results) => {
-            if (err) return res.status(500).json({ error: err.message });
+  db.query(
+    "UPDATE menus SET name = ?, price = ?, description = ? WHERE id = ? AND restaurant_id = ?",
+    [name, price, description, menuId, restaurant_id],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
 
-            if (results.affectedRows === 0) {
-                return res.status(403).json({
-                    message: "Akses ditolak / menu tidak ditemukan"
-                });
-            }
+      if (results.affectedRows === 0) {
+        return res.status(403).json({
+          message: "Akses ditolak / menu tidak ditemukan",
+        });
+      }
 
-            res.json({ message: "Menu berhasil diupdate" });
-        }
-    );
+      res.json({ message: "Menu berhasil diupdate" });
+    },
+  );
 });
 
 // DELETE menu
-app.delete('/api/menus/:id', (req, res) => {
-    const id = req.params.id;
+app.delete("/api/menus/:id", (req, res) => {
+  const id = req.params.id;
 
-    db.query('DELETE FROM menus WHERE id = ?', [id], (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
+  db.query("DELETE FROM menus WHERE id = ?", [id], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
 
-        if (results.affectedRows === 0) {
-            return res.status(404).json({ message: "Menu tidak ditemukan" });
-        }
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: "Menu tidak ditemukan" });
+    }
 
-        res.json({ message: "Menu berhasil dihapus" });
-    });
+    res.json({ message: "Menu berhasil dihapus" });
+  });
 });
 
 const PORT = 3001;
