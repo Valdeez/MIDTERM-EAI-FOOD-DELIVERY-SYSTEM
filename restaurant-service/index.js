@@ -7,6 +7,7 @@ const fs = require("fs");
 const app = express();
 
 app.use(cors());
+app.use("/public", express.static("public"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -27,7 +28,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-app.use("/public", express.static("public"));
 
 const db = mysql.createConnection({
   host: "localhost",
