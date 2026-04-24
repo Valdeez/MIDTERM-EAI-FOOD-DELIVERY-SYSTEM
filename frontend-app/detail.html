@@ -1,206 +1,269 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bubur DPR - Detail & Pesan</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detail Restoran - CariMakanBDG</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    />
+
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #ffffff; color: #1e293b; }
-        .navbar { border-bottom: 1px solid #f1f5f9; padding: 15px 0; }
-        .back-link { text-decoration: none; color: #64748b; font-size: 0.85rem; font-weight: 500; }
-
-        .detail-img-wrapper { width: 100%; height: 420px; border-radius: 24px; overflow: hidden; margin-top: 20px; }
-        .detail-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Menu Interaktif */
-        .menu-item-card {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 18px; border: 1px solid #f1f5f9; border-radius: 16px;
-            margin-bottom: 12px; transition: all 0.2s;
-        }
-        .menu-item-card:hover { border-color: #3498db; background-color: #f8fafc; }
-        
-        .qty-picker { display: flex; align-items: center; gap: 12px; }
-        .btn-qty {
-            width: 28px; height: 28px; border-radius: 8px; border: 1px solid #e2e8f0;
-            background: white; font-weight: bold; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn-qty:hover { background: #3498db; color: white; }
-
-        /* Sidebar Modern */
-        .sidebar-container { position: sticky; top: 100px; }
-        .info-card, .checkout-box {
-            background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;
-            padding: 24px; margin-bottom: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.02);
-        }
-        
-        .info-label { font-size: 0.65rem; text-transform: uppercase; font-weight: 700; color: #94a3b8; letter-spacing: 1px; display: block; margin-bottom: 5px; }
-        .info-value { font-size: 0.9rem; font-weight: 600; color: #1e293b; margin-bottom: 15px; display: block; }
-        
-        .badge-open { background-color: #ecfdf5; color: #059669; padding: 6px 12px; border-radius: 50px; font-weight: 700; font-size: 0.7rem; }
-        
-        .btn-confirm {
-            width: 100%; padding: 14px; border-radius: 50px; border: none;
-            background: #3498db; color: white; font-weight: 700; margin-top: 15px;
-        }
-        .btn-confirm:disabled { background: #e2e8f0; cursor: not-allowed; }
+      body {
+        font-family: "Plus Jakarta Sans", sans-serif;
+        background-color: #ffffff;
+        color: #1e293b;
+      }
+      .navbar {
+        border-bottom: 1px solid #f1f5f9;
+        padding: 15px 0;
+      }
+      .back-link {
+        text-decoration: none;
+        color: #64748b;
+        font-size: 0.85rem;
+        font-weight: 500;
+      }
+      .detail-img-wrapper {
+        width: 100%;
+        height: 420px;
+        border-radius: 24px;
+        overflow: hidden;
+        margin-top: 20px;
+        background-color: #f8fafc;
+      }
+      .detail-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .menu-item-card {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px;
+        border: 1px solid #f1f5f9;
+        border-radius: 16px;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+      }
+      .menu-item-card:hover {
+        border-color: #3498db;
+        background-color: #f8fafc;
+      }
+      .menu-item-img {
+        width: 70px;
+        height: 70px;
+        border-radius: 12px;
+        object-fit: cover;
+        background-color: #f1f5f9;
+      }
+      /* Tambahkan di dalam tag <style> detail.html */
+      .menu-description {
+        font-size: 0.75rem;
+        color: #64748b; /* Warna abu-abu yang soft */
+        margin-bottom: 4px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Membatasi maksimal 2 baris agar tetap rapi */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .qty-picker {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .btn-qty {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-qty:hover {
+        background: #3498db;
+        color: white;
+      }
+      .sidebar-container {
+        position: sticky;
+        top: 100px;
+      }
+      .info-card,
+      .checkout-box {
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 24px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+      }
+      .info-label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: #94a3b8;
+        letter-spacing: 1px;
+        display: block;
+        margin-bottom: 5px;
+      }
+      .info-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 15px;
+        display: block;
+      }
+      .badge-open {
+        background-color: #ecfdf5;
+        color: #059669;
+        padding: 6px 12px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.7rem;
+      }
+      .btn-confirm {
+        width: 100%;
+        padding: 14px;
+        border-radius: 50px;
+        border: none;
+        background: #3498db;
+        color: white;
+        font-weight: 700;
+        margin-top: 15px;
+      }
+      .btn-confirm:disabled {
+        background: #e2e8f0;
+        cursor: not-allowed;
+      }
     </style>
-</head>
-<body>
-
-    <nav class="navbar sticky-top bg-white">
-        <div class="container d-flex justify-content-between align-items-center">
-            <a class="navbar-brand fw-bold text-dark" href="home.html">CariMakan<span class="text-primary">BDG</span></a>
-            <a href="home.html" class="back-link"><i class="bi bi-arrow-left me-1"></i> Kembali</a>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg sticky-top bg-white">
+      <div class="container">
+        <a class="navbar-brand fw-bold text-dark" href="#"
+          >CariMakan<span class="text-primary">BDG</span></a
+        >
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a
+                class="nav-link text-dark fw-medium px-3 active"
+                href="home.html"
+                >Home</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-dark fw-medium px-3" href="history.html"
+                >Histori Pesanan</a
+              >
+            </li>
+          </ul>
         </div>
+      </div>
     </nav>
 
     <div class="container pb-5">
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="detail-img-wrapper">
-                    <img id="resto-image" alt="Bubur DPR">
-                </div>
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="detail-img-wrapper">
+            <img id="resto-image" src="" alt="Loading..." />
+          </div>
 
-                <h1 id="resto-name" class="fw-800 mt-4" style="font-size: 2.2rem; letter-spacing: -1px;"></h1>
-                <p id ="resto-description" class="text-muted mt-3" style="font-size: 0.95rem; line-height: 1.8;">
-                </p>
+          <h1
+            id="resto-name"
+            class="fw-800 mt-4"
+            style="font-size: 2.2rem; letter-spacing: -1px"
+          >
+            Memuat Restoran...
+          </h1>
+          <p
+            id="resto-description"
+            class="text-muted mt-3"
+            style="font-size: 0.95rem; line-height: 1.8"
+          ></p>
 
-                <h5 class="fw-bold mt-5 mb-4">Daftar Menu Favorit</h5>
-                
-                <div id="menu-items">
-                    <div class="menu-item-card">
-                        <div>
-                            <h6 class="mb-1 fw-bold">Bubur Ayam Spesial</h6>
-                            <span class="text-primary fw-bold small">Rp 25.000</span>
-                        </div>
-                        <div class="qty-picker">
-                            <button class="btn-qty" onclick="changeQty('m1', -1, 'Bubur Ayam Spesial', 25000)">-</button>
-                            <span id="qty-m1" class="fw-bold">0</span>
-                            <button class="btn-qty" onclick="changeQty('m1', 1, 'Bubur Ayam Spesial', 25000)">+</button>
-                        </div>
-                    </div>
-
-                    <div class="menu-item-card">
-                        <div>
-                            <h6 class="mb-1 fw-bold">Bubur Telur Pitan</h6>
-                            <span class="text-primary fw-bold small">Rp 32.000</span>
-                        </div>
-                        <div class="qty-picker">
-                            <button class="btn-qty" onclick="changeQty('m2', -1, 'Bubur Telur Pitan', 32000)">-</button>
-                            <span id="qty-m2" class="fw-bold">0</span>
-                            <button class="btn-qty" onclick="changeQty('m2', 1, 'Bubur Telur Pitan', 32000)">+</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4 mt-lg-0 mt-5">
-                <div class="sidebar-container">
-                    
-                    <div class="info-card">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <span class="badge-open">BUKA SEKARANG</span>
-                            <div class="text-warning small"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div>
-                        </div>
-                        
-                        <span class="info-label">Alamat Lengkap</span>
-                        <span id="resto-address" class="info-value"></span>
-
-                        <span class="info-label">Jam Operasional</span>
-                        <span id="resto-hours" class="info-value mb-0"></span>
-                    </div>
-
-                    <div class="checkout-box">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold m-0">Pesanan Kamu</h6>
-                            <span class="badge bg-light text-dark fw-bold" id="item-count">0 Item</span>
-                        </div>
-
-                        <div id="cart-list" class="mb-3">
-                            <div class="text-center py-3 text-muted small">Belum ada menu dipilih</div>
-                        </div>
-
-                        <div class="border-top pt-3">
-                            <div class="d-flex justify-content-between mb-2 small">
-                                <span class="text-muted">Subtotal</span>
-                                <span id="subtotal" class="fw-bold">Rp 0</span>
-                            </div>
-                            <div class="d-flex justify-content-between small">
-                                <span class="text-muted">Biaya Layanan</span>
-                                <span id="fee" class="fw-bold">Rp 0</span>
-                            </div>
-                            <div class="d-flex justify-content-between mt-3 pt-3 border-top">
-                                <span class="fw-bold">Total</span>
-                                <span id="total" class="fw-bold text-primary fs-5">Rp 0</span>
-                            </div>
-                        </div>
-
-                        <button id="btn-confirm" class="btn-confirm" disabled onclick="checkout()">
-                            Konfirmasi Pesanan
-                        </button>
-                    </div>
-
-                </div>
-            </div>
+          <h5 class="fw-bold mt-5 mb-4">Daftar Menu Favorit</h5>
+          <div id="menu-items"></div>
         </div>
+
+        <div class="col-lg-4 mt-lg-0 mt-5">
+          <div class="sidebar-container">
+            <div class="info-card">
+              <div
+                class="d-flex justify-content-between align-items-center mb-4"
+              >
+                <span class="badge-open">BUKA SEKARANG</span>
+                <div class="text-warning small">
+                  <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i
+                  ><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i
+                  ><i class="bi bi-star-fill"></i>
+                </div>
+              </div>
+              <span class="info-label">Alamat Lengkap</span>
+              <span id="resto-address" class="info-value">-</span>
+              <span class="info-label">Jam Operasional</span>
+              <span id="resto-hours" class="info-value mb-0">-</span>
+            </div>
+
+            <div class="checkout-box">
+              <div
+                class="d-flex justify-content-between align-items-center mb-3"
+              >
+                <h6 class="fw-bold m-0">Pesanan Kamu</h6>
+                <span class="badge bg-light text-dark fw-bold" id="item-count"
+                  >0 Item</span
+                >
+              </div>
+              <div id="cart-list" class="mb-3">
+                <div class="text-center py-3 text-muted small">
+                  Belum ada menu dipilih
+                </div>
+              </div>
+              <div class="border-top pt-3">
+                <div class="d-flex justify-content-between mb-2 small">
+                  <span class="text-muted">Subtotal</span>
+                  <span id="subtotal" class="fw-bold">Rp 0</span>
+                </div>
+                <div class="d-flex justify-content-between small">
+                  <span class="text-muted">Biaya Layanan</span>
+                  <span id="fee" class="fw-bold">Rp 0</span>
+                </div>
+                <div
+                  class="d-flex justify-content-between mt-3 pt-3 border-top"
+                >
+                  <span class="fw-bold">Total</span>
+                  <span id="total" class="fw-bold text-primary fs-5">Rp 0</span>
+                </div>
+              </div>
+              <button
+                id="btn-confirm"
+                class="btn-confirm"
+                disabled
+                onclick="handleCheckout()"
+              >
+                Konfirmasi Pesanan
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <script>
-        let cart = {};
-
-        function changeQty(id, delta, name, price) {
-            if (!cart[id]) cart[id] = { name: name, price: price, qty: 0 };
-            cart[id].qty += delta;
-            if (cart[id].qty < 0) cart[id].qty = 0;
-            document.getElementById(`qty-${id}`).innerText = cart[id].qty;
-            updateCart();
-        }
-
-        function updateCart() {
-            const list = document.getElementById('cart-list');
-            const subtotalEl = document.getElementById('subtotal');
-            const totalEl = document.getElementById('total');
-            const feeEl = document.getElementById('fee');
-            const btn = document.getElementById('btn-confirm');
-            const countEl = document.getElementById('item-count');
-
-            let html = ''; let subtotal = 0; let totalItems = 0;
-
-            for (const key in cart) {
-                if (cart[key].qty > 0) {
-                    let priceTotal = cart[key].qty * cart[key].price;
-                    subtotal += priceTotal;
-                    totalItems += cart[key].qty;
-                    html += `<div class="d-flex justify-content-between mb-2 small">
-                                <span>${cart[key].qty}x ${cart[key].name}</span>
-                                <span class="fw-600">Rp ${priceTotal.toLocaleString('id-ID')}</span>
-                             </div>`;
-                }
-            }
-
-            if (html === '') {
-                list.innerHTML = '<div class="text-center py-3 text-muted small">Belum ada menu dipilih</div>';
-                btn.disabled = true;
-                feeEl.innerText = "Rp 0"; subtotalEl.innerText = "Rp 0"; totalEl.innerText = "Rp 0"; countEl.innerText = "0 Item";
-            } else {
-                list.innerHTML = html;
-                btn.disabled = false;
-                let fee = 2000;
-                feeEl.innerText = `Rp ${fee.toLocaleString('id-ID')}`;
-                subtotalEl.innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-                totalEl.innerText = `Rp ${(subtotal + fee).toLocaleString('id-ID')}`;
-                countEl.innerText = `${totalItems} Item`;
-            }
-        }
-
-        function checkout() { alert('Pesanan dikonfirmasi!'); }
-    </script>
-</body>
+    <script src="js/detail.js"></script>
+  </body>
 </html>
