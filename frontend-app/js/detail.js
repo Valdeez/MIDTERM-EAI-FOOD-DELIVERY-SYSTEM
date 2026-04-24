@@ -79,9 +79,9 @@ function renderMenus(menus) {
                 </div>
 
                 <div class="qty-picker">
-                    <button class="btn-qty" onclick="changeQty('${menu.id}', -1, '${menu.name}', ${menu.price})">-</button>
+                    <button class="btn-qty" onclick="changeQty('${menu.id}', -1, '${menu.name}', ${menu.price}, '${menuImage}')">-</button>
                     <span id="qty-${menu.id}" class="fw-bold">0</span>
-                    <button class="btn-qty" onclick="changeQty('${menu.id}', 1, '${menu.name}', ${menu.price})">+</button>
+                    <button class="btn-qty" onclick="changeQty('${menu.id}', 1, '${menu.name}', ${menu.price}, '${menuImage}')">+</button>
                 </div>
             </div>
         `;
@@ -90,8 +90,12 @@ function renderMenus(menus) {
 }
 
 // 4. Logika Keranjang (Dibuat global agar bisa diakses dari atribut onclick)
-window.changeQty = function (id, delta, name, price) {
-  if (!cart[id]) cart[id] = { name: name, price: parseInt(price), qty: 0 };
+// Tambahkan parameter 'image'
+window.changeQty = function (id, delta, name, price, image) {
+  // Simpan juga imagenya ke dalam cart
+  if (!cart[id])
+    cart[id] = { name: name, price: parseInt(price), qty: 0, image: image };
+
   cart[id].qty += delta;
   if (cart[id].qty < 0) cart[id].qty = 0;
 
@@ -145,20 +149,70 @@ function resetPricing() {
 }
 
 // 5. Checkout Action
-window.handleCheckout = function () {
+// Jadikan fungsinya async karena kita butuh await untuk API Fetch
+window.handleCheckout = async function () {
+  const btn = document.getElementById("btn-confirm");
   const totalAmount = parseInt(
     document.getElementById("total").innerText.replace(/[^0-9]/g, ""),
   );
 
-  // Payload untuk dikirim ke Order Service (Port 3002)
-  const payload = {
-    user_id: 1, // Simulasi User ID
-    restaurant_id: currentRestaurantId,
-    total_amount: totalAmount,
-  };
+  // Ubah status tombol biar tidak di-spam klik
+  btn.disabled = true;
+  btn.innerText = "Memproses Pesanan...";
 
-  console.log("Mengirim pesanan:", payload);
-  alert(
-    `Pesanan berhasil dibuat untuk Restoran ID: ${currentRestaurantId}\nTotal: Rp ${totalAmount.toLocaleString("id-ID")}`,
-  );
+  try {
+    // --- PROSES 1: INSERT KE TABEL 'orders' ---
+    const orderPayload = {
+      user_id: 1, // Simulasi User ID
+      restaurant_id: currentRestaurantId,
+      total_amount: totalAmount,
+    };
+
+    const orderRes = await fetch("http://localhost:3002/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderPayload),
+    });
+
+    const orderResult = await orderRes.json();
+    if (!orderRes.ok)
+      throw new Error(orderResult.error || "Gagal membuat order");
+
+    const newOrderId = orderResult.order_id;
+
+    // --- PROSES 2: INSERT KE TABEL 'order_items' ---
+    const itemPromises = [];
+
+    for (const menuId in cart) {
+      if (cart[menuId].qty > 0) {
+        const itemPayload = {
+          order_id: newOrderId,
+          menu_id: menuId,
+          qty: cart[menuId].qty,
+          price: cart[menuId].price,
+        };
+
+        const itemReq = fetch("http://localhost:3002/api/order-items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(itemPayload),
+        });
+        itemPromises.push(itemReq);
+      }
+    }
+
+    // Tunggu semua menu berhasil masuk ke keranjang di database
+    await Promise.all(itemPromises);
+
+    // --- PROSES 3: LEMPAR KE HALAMAN PAYMENT ---
+    // Bawa data order_id dan amount lewat URL
+    window.location.href = `payment.html?order_id=${newOrderId}&amount=${totalAmount}`;
+  } catch (error) {
+    console.error("Checkout error:", error);
+    alert(`Terjadi kesalahan: ${error.message}`);
+
+    // Kembalikan tombol seperti semula jika gagal
+    btn.disabled = false;
+    btn.innerText = "Konfirmasi Pesanan";
+  }
 };
