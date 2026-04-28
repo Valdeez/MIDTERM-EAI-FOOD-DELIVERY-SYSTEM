@@ -7,6 +7,7 @@ let cart = {};
 let currentRestaurantId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+  updateNavbar();
   const urlParams = new URLSearchParams(window.location.search);
   currentRestaurantId = urlParams.get("id");
 
@@ -18,6 +19,56 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "home.html";
   }
 });
+
+function updateNavbar() {
+  const navAuth = document.getElementById("nav-auth");
+  const sessionRaw = localStorage.getItem("user_session");
+  const navHistory = document.getElementById("nav-history");
+
+  if (sessionRaw) {
+    // User sudah login → tampilkan avatar + nama + tombol logout
+    const user = JSON.parse(sessionRaw);
+    const firstName = user.name ? user.name.split(" ")[0] : "User";
+    const initial = firstName.charAt(0).toUpperCase();
+    if (navHistory) {
+      navHistory.classList.remove("d-none");
+    }
+    navAuth.innerHTML = `
+      <div class="user-greeting">
+      
+      <span class="fw-bold text-dark" style="font-size: 1.15rem;">Hi, ${firstName}!</span>
+      <button class="btn-logout-modern" data-bs-toggle="modal" data-bs-target="#logoutModal">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+     
+    `;
+  } else {
+    // User belum login → tampilkan tombol Login
+    if (navHistory) {
+      navHistory.classList.add("d-none");
+    }
+    navAuth.innerHTML = `
+      <a href="login.html" class="btn-login-nav shadow-sm">
+        <i class="bi bi-person-circle me-1"></i> Masuk
+      </a>
+    `;
+  }
+}
+
+function executeLogout() {
+  localStorage.removeItem("user_session");
+
+  // (Opsional) Tutup modal secara manual sebelum pindah halaman, biar transisinya lebih mulus
+  const modalElement = document.getElementById("logoutModal");
+  const modalInstance = bootstrap.Modal.getInstance(modalElement);
+  if (modalInstance) {
+    modalInstance.hide();
+  }
+
+  // Pindah ke halaman login
+  window.location.href = "login.html";
+}
 
 // 1. Ambil Detail Restoran
 async function fetchRestaurantDetail(id) {
@@ -79,9 +130,9 @@ function renderMenus(menus) {
                 </div>
 
                 <div class="qty-picker">
-                    <button class="btn-qty" onclick="changeQty('${menu.id}', -1, '${menu.name}', ${menu.price})">-</button>
+                    <button class="btn-qty" onclick="changeQty('${menu.id}', -1, '${menu.name}', ${menu.price}, '${menuImage}')">-</button>
                     <span id="qty-${menu.id}" class="fw-bold">0</span>
-                    <button class="btn-qty" onclick="changeQty('${menu.id}', 1, '${menu.name}', ${menu.price})">+</button>
+                    <button class="btn-qty" onclick="changeQty('${menu.id}', 1, '${menu.name}', ${menu.price}, '${menuImage}')">+</button>
                 </div>
             </div>
         `;
@@ -90,8 +141,12 @@ function renderMenus(menus) {
 }
 
 // 4. Logika Keranjang (Dibuat global agar bisa diakses dari atribut onclick)
-window.changeQty = function (id, delta, name, price) {
-  if (!cart[id]) cart[id] = { name: name, price: parseInt(price), qty: 0 };
+// Tambahkan parameter 'image'
+window.changeQty = function (id, delta, name, price, image) {
+  // Simpan juga imagenya ke dalam cart
+  if (!cart[id])
+    cart[id] = { name: name, price: parseInt(price), qty: 0, image: image };
+
   cart[id].qty += delta;
   if (cart[id].qty < 0) cart[id].qty = 0;
 
@@ -145,20 +200,83 @@ function resetPricing() {
 }
 
 // 5. Checkout Action
-window.handleCheckout = function () {
+// Jadikan fungsinya async karena kita butuh await untuk API Fetch
+window.handleCheckout = async function () {
+  const sessionRaw = localStorage.getItem("user_session");
+  if (!sessionRaw) {
+    // Panggil modal peringatan login yang sudah kita buat di HTML
+    const loginModal = new bootstrap.Modal(
+      document.getElementById("loginRequiredModal"),
+    );
+    loginModal.show();
+
+    return; // Hentikan proses fungsi sampai di sini
+  }
+  const user = JSON.parse(sessionRaw);
+  const userId = user.id;
+  const btn = document.getElementById("btn-confirm");
   const totalAmount = parseInt(
     document.getElementById("total").innerText.replace(/[^0-9]/g, ""),
   );
 
-  // Payload untuk dikirim ke Order Service (Port 3002)
-  const payload = {
-    user_id: 1, // Simulasi User ID
-    restaurant_id: currentRestaurantId,
-    total_amount: totalAmount,
-  };
+  // Ubah status tombol biar tidak di-spam klik
+  btn.disabled = true;
+  btn.innerText = "Memproses Pesanan...";
 
-  console.log("Mengirim pesanan:", payload);
-  alert(
-    `Pesanan berhasil dibuat untuk Restoran ID: ${currentRestaurantId}\nTotal: Rp ${totalAmount.toLocaleString("id-ID")}`,
-  );
+  try {
+    // --- PROSES 1: INSERT KE TABEL 'orders' ---
+    const orderPayload = {
+      user_id: userId, // Simulasi User ID
+      restaurant_id: currentRestaurantId,
+      total_amount: totalAmount,
+    };
+
+    const orderRes = await fetch("http://localhost:3002/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderPayload),
+    });
+
+    const orderResult = await orderRes.json();
+    if (!orderRes.ok)
+      throw new Error(orderResult.error || "Gagal membuat order");
+
+    const newOrderId = orderResult.order_id;
+
+    // --- PROSES 2: INSERT KE TABEL 'order_items' ---
+    const itemPromises = [];
+
+    for (const menuId in cart) {
+      if (cart[menuId].qty > 0) {
+        const itemPayload = {
+          order_id: newOrderId,
+          menu_id: menuId,
+          qty: cart[menuId].qty,
+          price: cart[menuId].price,
+        };
+
+        const itemReq = fetch("http://localhost:3002/api/order-items", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(itemPayload),
+        });
+        itemPromises.push(itemReq);
+      }
+    }
+
+    // Tunggu semua menu berhasil masuk ke keranjang di database
+    await Promise.all(itemPromises);
+
+    // --- PROSES 3: LEMPAR KE HALAMAN PAYMENT ---
+    // Bawa data order_id dan amount lewat URL
+    // Ganti baris "window.location.href" di detail.js kamu dengan baris ini:
+    window.location.href = `payment.html?order_id=${newOrderId}&amount=${totalAmount}&restaurant_id=${currentRestaurantId}`;
+  } catch (error) {
+    console.error("Checkout error:", error);
+    alert(`Terjadi kesalahan: ${error.message}`);
+
+    // Kembalikan tombol seperti semula jika gagal
+    btn.disabled = false;
+    btn.innerText = "Konfirmasi Pesanan";
+  }
 };
