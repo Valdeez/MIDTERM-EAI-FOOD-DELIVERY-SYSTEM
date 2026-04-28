@@ -166,6 +166,7 @@ function openMenuModal(id = "", name = "", price = "", desc = "") {
   document.getElementById("menu-name").value = name;
   document.getElementById("menu-price").value = price;
   document.getElementById("menu-desc").value = desc !== "-" ? desc : "";
+  document.getElementById("menu-image").value = ""; // Reset file input setiap buka modal
 
   document.getElementById("menuModalTitle").innerText = id
     ? "Edit Menu"
@@ -181,13 +182,18 @@ function openMenuModal(id = "", name = "", price = "", desc = "") {
 
 async function saveMenu() {
   const id = document.getElementById("menu-id").value;
-  const payload = {
-    restaurant_id: CREW_RESTO_ID,
-    crew_restaurant_id: CREW_RESTO_ID, // Otorisasi validasi backend
-    name: document.getElementById("menu-name").value,
-    price: document.getElementById("menu-price").value,
-    description: document.getElementById("menu-desc").value,
-  };
+
+  const formData = new FormData();
+  formData.append("restaurant_id", CREW_RESTO_ID);
+  formData.append("crew_restaurant_id", CREW_RESTO_ID);
+  formData.append("name", document.getElementById("menu-name").value);
+  formData.append("price", document.getElementById("menu-price").value);
+  formData.append("description", document.getElementById("menu-desc").value);
+
+  const imageFile = document.getElementById("menu-image").files[0];
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
 
   const url = id ? `${MENU_API}/menus/${id}` : `${MENU_API}/menus`;
   const method = id ? "PUT" : "POST";
@@ -195,13 +201,12 @@ async function saveMenu() {
   try {
     const res = await fetch(url, {
       method: method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: formData, // Sama seperti profil, gunakan FormData
     });
 
     if (res.ok) {
       menuModalInstance.hide();
-      loadMenus(); // Refresh Data
+      loadMenus();
     } else {
       const err = await res.json();
       alert("Gagal menyimpan menu: " + err.message);
@@ -252,27 +257,37 @@ async function loadRestoProfile() {
 }
 
 async function saveRestoProfile() {
-  // Karena kita tidak mengupload gambar di dashboard ini, kita kirimkan data JSON biasa
-  const payload = {
-    name: document.getElementById("prof-name").value,
-    address: document.getElementById("prof-address").value,
-    jam_operasional: document.getElementById("prof-hours").value,
-    deskripsi: document.getElementById("prof-desc").value,
-    crew_restaurant_id: CREW_RESTO_ID, // Validasi backend
-  };
+  const formData = new FormData();
+  formData.append("name", document.getElementById("prof-name").value);
+  formData.append("address", document.getElementById("prof-address").value);
+  formData.append(
+    "jam_operasional",
+    document.getElementById("prof-hours").value,
+  );
+  formData.append("deskripsi", document.getElementById("prof-desc").value);
+  formData.append("is_active", document.getElementById("prof-active").value);
+  formData.append("crew_restaurant_id", CREW_RESTO_ID);
+
+  // Jika user memilih file gambar baru, tambahkan ke form data
+  const imageFile = document.getElementById("prof-image").files[0];
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
 
   try {
     const res = await fetch(`${MENU_API}/restaurants/${CREW_RESTO_ID}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      // Jangan gunakan header Content-Type di sini, biarkan browser yang mengaturnya secara otomatis untuk multipart/form-data
+      body: formData,
     });
 
     if (res.ok) {
       alert("Profil restoran berhasil diperbarui!");
-      loadRestoProfile(); // Refresh tampilan text di header
+      document.getElementById("prof-image").value = ""; // Reset input file
+      loadRestoProfile();
     } else {
-      alert("Gagal memperbarui profil.");
+      const err = await res.json();
+      alert("Gagal memperbarui profil: " + err.message);
     }
   } catch (e) {
     console.error(e);

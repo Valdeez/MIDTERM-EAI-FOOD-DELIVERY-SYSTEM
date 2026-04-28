@@ -201,6 +201,20 @@
               <h4 class="fw-bold mb-3">Edit Profil Restoran</h4>
               <div class="card card-custom p-4">
                 <form id="form-resto-profile">
+                  <div class="mb-4">
+                    <label class="form-label fw-medium"
+                      >Upload Gambar Restoran (Baru)</label
+                    >
+                    <input
+                      type="file"
+                      id="prof-image"
+                      class="form-control"
+                      accept="image/*"
+                    />
+                    <small class="text-muted"
+                      >Biarkan kosong jika tidak ingin mengubah gambar.</small
+                    >
+                  </div>
                   <div class="mb-3">
                     <label class="form-label fw-medium">Nama Restoran</label>
                     <input
@@ -280,6 +294,17 @@
           <div class="modal-body p-4">
             <form id="form-menu">
               <input type="hidden" id="menu-id" />
+              <div class="mb-4">
+                <label class="form-label text-muted small fw-bold"
+                  >GAMBAR MENU</label
+                >
+                <input
+                  type="file"
+                  id="menu-image"
+                  class="form-control"
+                  accept="image/*"
+                />
+              </div>
               <div class="mb-3">
                 <label class="form-label text-muted small fw-bold"
                   >NAMA MENU</label
