@@ -13,24 +13,9 @@ const db = mysql.createConnection({
   database: "db_order",
 });
 
-// app.put("/api/orders/status", (req, res) => {
-//   const { order_id, status } = req.body;
-
-//   db.query(
-//     "UPDATE orders SET status = ? WHERE id = ?",
-//     [status, order_id],
-//     (err, results) => {
-//       if (err) return res.status(500).json({ error: err.message });
-//       res.json({
-//         message: `Status pesanan ${order_id} berhasil diubah menjadi ${status}`,
-//       });
-//     },
-//   );
-// });
-
 app.put("/api/orders/:id", (req, res) => {
   const orderId = req.params.id;
-  const { status } = req.body; // 'Pending', 'Diproses', atau 'Selesai'
+  const { status } = req.body;
 
   db.query(
     "UPDATE orders SET status = ? WHERE id = ?",
@@ -175,7 +160,6 @@ app.delete("/api/order-items/:id", (req, res) => {
   });
 });
 
-// 4. Mengambil semua item berdasarkan order_id tertentu
 app.get("/api/order-items/:order_id", (req, res) => {
   const orderId = req.params.order_id;
 

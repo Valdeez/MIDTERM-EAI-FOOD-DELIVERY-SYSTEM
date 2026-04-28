@@ -1,5 +1,3 @@
-// file: js/history.js
-
 const ORDER_API = "http://localhost:3002/api";
 const MENU_API = "http://localhost:3001/api";
 
@@ -14,7 +12,6 @@ function updateNavbar() {
   const navHistory = document.getElementById("nav-history");
 
   if (sessionRaw) {
-    // User sudah login → tampilkan avatar + nama + tombol logout
     const user = JSON.parse(sessionRaw);
     const firstName = user.name ? user.name.split(" ")[0] : "User";
     const initial = firstName.charAt(0).toUpperCase();
@@ -32,7 +29,6 @@ function updateNavbar() {
      
     `;
   } else {
-    // User belum login → tampilkan tombol Login
     if (navHistory) {
       navHistory.classList.add("d-none");
     }
@@ -46,24 +42,21 @@ function updateNavbar() {
 
 function executeLogout() {
   localStorage.removeItem("user_session");
-  
-  // (Opsional) Tutup modal secara manual sebelum pindah halaman, biar transisinya lebih mulus
-  const modalElement = document.getElementById('logoutModal');
+
+  const modalElement = document.getElementById("logoutModal");
   const modalInstance = bootstrap.Modal.getInstance(modalElement);
   if (modalInstance) {
-      modalInstance.hide();
+    modalInstance.hide();
   }
 
-  // Pindah ke halaman login
   window.location.href = "login.html";
 }
-
 
 async function muatDataPesanan() {
   const tbody = document.getElementById("tabelHistori");
   const sessionRaw = localStorage.getItem("user_session");
   const user = JSON.parse(sessionRaw);
-  const userId = user.id; // Simulasi user yang sedang login
+  const userId = user.id;
 
   tbody.innerHTML = `
         <tr>
@@ -75,7 +68,6 @@ async function muatDataPesanan() {
     `;
 
   try {
-    // 1. Fetch semua data orders dari Service Order
     const res = await fetch(`${ORDER_API}/orders?user_id=${userId}`);
     const result = await res.json();
 
@@ -83,11 +75,9 @@ async function muatDataPesanan() {
 
     const orders = result.data || [];
 
-    // 2. Ambil daftar ID Restoran yang unik untuk meminimalkan request API
     const uniqueRestoIds = [...new Set(orders.map((o) => o.restaurant_id))];
     const restoNames = {};
 
-    // 3. Fetch nama asli setiap restoran
     await Promise.all(
       uniqueRestoIds.map(async (id) => {
         try {
@@ -96,7 +86,7 @@ async function muatDataPesanan() {
           if (rData.data && rData.data.name) {
             restoNames[id] = rData.data.name;
           } else {
-            restoNames[id] = `Resto-${id}`; // Fallback jika tidak ada nama
+            restoNames[id] = `Resto-${id}`;
           }
         } catch (e) {
           restoNames[id] = `Resto-${id}`;
@@ -104,7 +94,6 @@ async function muatDataPesanan() {
       }),
     );
 
-    // 4. Render tabel dengan data pesanan dan nama restoran asli
     renderTabel(orders, restoNames);
   } catch (error) {
     tbody.innerHTML = `
@@ -136,22 +125,18 @@ function renderTabel(orders, restoNames) {
     return;
   }
 
-  // Reverse agar pesanan terbaru ada di atas
   orders.reverse().forEach((order) => {
     let badgeColor = "bg-secondary";
     if (order.status === "Pending") badgeColor = "bg-warning text-dark";
     if (order.status === "Diproses") badgeColor = "bg-info text-dark";
     if (order.status === "Selesai") badgeColor = "bg-success";
 
-    // Ambil nama restoran dari object restoNames
     const rName =
       restoNames[order.restaurant_id] || `Resto-${order.restaurant_id}`;
 
-    // Mencegah error jika nama resto mengandung tanda kutip (misal: Resto d'Best)
     const safeRestoNameForJS = rName.replace(/'/g, "\\'");
     const safeRestoNameForHTML = rName.replace(/'/g, "&#39;");
 
-    // Format harga agar bulat (misal: 50.000, bukan 50000.00) dan berwarna biru (text-primary)
     const formattedPrice = parseInt(order.total_amount).toLocaleString("id-ID");
 
     const row = `
@@ -171,7 +156,6 @@ function renderTabel(orders, restoNames) {
   });
 }
 
-// === FUNGSI MODAL DETAIL ===
 async function tampilkanDetail(
   orderId,
   restaurantId,
@@ -186,12 +170,10 @@ async function tampilkanDetail(
   modalBody.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted small">Memuat detail pesanan...</p></div>`;
 
   try {
-    // Fetch data Order Items (Port 3002)
     const itemsRes = await fetch(`${ORDER_API}/order-items/${orderId}`);
     const itemsResult = await itemsRes.json();
     const orderItems = itemsResult.data || [];
 
-    // Fetch data Menu untuk mendapatkan Nama Menu (Port 3001)
     let menus = [];
     try {
       const menuRes = await fetch(
@@ -203,11 +185,9 @@ async function tampilkanDetail(
       console.warn("Gagal mengambil nama menu");
     }
 
-    // Mengambil metode pembayaran dari LocalStorage yang diset di halaman payment.html
     const paymentMethod =
       localStorage.getItem("last_payment_method") || "QRIS / VA";
 
-    // Render Header Modal dengan Nama Asli dan Metode Pembayaran
     let htmlContent = `
             <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
                 <div>
@@ -222,7 +202,6 @@ async function tampilkanDetail(
             <div class="mb-3">
         `;
 
-    // Render setiap menu yang dipesan
     orderItems.forEach((item) => {
       const dataMenu = menus.find((m) => m.id === item.menu_id);
       const namaMenu = dataMenu ? dataMenu.name : `Menu ID-${item.menu_id}`;
@@ -238,7 +217,6 @@ async function tampilkanDetail(
             `;
     });
 
-    // Render Total
     htmlContent += `
             </div>
             <div class="d-flex justify-content-between pt-3 border-top mt-2 align-items-center">

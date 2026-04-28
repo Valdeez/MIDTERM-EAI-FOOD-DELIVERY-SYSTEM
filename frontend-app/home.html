@@ -74,8 +74,6 @@
         font-weight: 600;
         border: none;
       }
-
-      /* KARTU RESTORAN */
       .card-restaurant {
         border: 1px solid #f0f0f0;
         border-radius: 20px;
@@ -126,8 +124,6 @@
         font-weight: 600;
         padding: 6px 15px;
       }
-
-      /* NAVBAR USER */
       .btn-login-nav {
         background-color: #3ba4f6;
         color: white;
@@ -163,16 +159,15 @@
         font-weight: 700;
         font-size: 0.8rem;
       }
-      /* GAYA TOMBOL KELUAR MODERN */
       .btn-logout-modern {
         display: flex;
         align-items: center;
         gap: 8px;
-        background-color: #fff1f2; /* Warna latar merah sangat muda */
-        color: #e11d48; /* Warna teks rose/merah gelap */
-        border: 1px solid #fecdd3; /* Border tipis senada */
+        background-color: #fff1f2;
+        color: #e11d48;
+        border: 1px solid #fecdd3;
         padding: 8px 18px;
-        border-radius: 12px; /* Sudut membulat modern */
+        border-radius: 12px;
         font-weight: 600;
         font-size: 0.9rem;
         cursor: pointer;
@@ -181,10 +176,10 @@
       }
 
       .btn-logout-modern:hover {
-        background-color: #e11d48; /* Berubah jadi merah penuh saat hover */
+        background-color: #e11d48;
         color: #ffffff;
         border-color: #e11d48;
-        transform: translateY(-2px); /* Efek melayang sedikit */
+        transform: translateY(-2px);
         box-shadow: 0 6px 15px rgba(225, 29, 72, 0.25);
       }
 
@@ -194,7 +189,7 @@
       }
 
       .btn-logout-modern:hover i {
-        transform: translateX(3px); /* Ikon panah bergeser sedikit ke kanan saat hover */
+        transform: translateX(3px);
       }
     </style>
   </head>
@@ -204,7 +199,12 @@
         <a class="navbar-brand fw-bold text-dark" href="home.html"
           >CariMakan<span class="text-primary">BDG</span></a
         >
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
           <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -217,16 +217,14 @@
                 >Home</a
               >
             </li>
-            
+
             <li class="nav-item d-none" id="nav-history">
               <a class="nav-link text-dark fw-medium" href="history.html">
                 <i class="me-1"></i>Histori Pesanan
               </a>
             </li>
 
-            <li class="nav-item" id="nav-auth">
-              </li>
-
+            <li class="nav-item" id="nav-auth"></li>
           </ul>
         </div>
       </div>
@@ -268,22 +266,61 @@
         &copy; 2026 CariMakanBDG - Katalog Kuliner Bandung
       </p>
     </footer>
-    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="logoutModal"
+      tabindex="-1"
+      aria-labelledby="logoutModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <div
+          class="modal-content"
+          style="
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+          "
+        >
           <div class="modal-header border-0 pb-0">
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body text-center py-4">
             <div class="mb-3">
-              <i class="bi bi-box-arrow-right text-danger" style="font-size: 3.5rem;"></i>
+              <i
+                class="bi bi-box-arrow-right text-danger"
+                style="font-size: 3.5rem"
+              ></i>
             </div>
             <h5 class="fw-bold mb-2">Konfirmasi Keluar</h5>
-            <p class="text-muted mb-0">Apakah kamu yakin ingin keluar dari akun ini?</p>
+            <p class="text-muted mb-0">
+              Apakah kamu yakin ingin keluar dari akun ini?
+            </p>
           </div>
-          <div class="modal-footer border-0 pt-0 pb-4 justify-content-center gap-2">
-            <button type="button" class="btn btn-light px-4 fw-medium" data-bs-dismiss="modal" style="border-radius: 10px;">Batal</button>
-            <button type="button" class="btn btn-danger px-4 fw-medium" onclick="executeLogout()" style="border-radius: 10px;">Ya, Keluar</button>
+          <div
+            class="modal-footer border-0 pt-0 pb-4 justify-content-center gap-2"
+          >
+            <button
+              type="button"
+              class="btn btn-light px-4 fw-medium"
+              data-bs-dismiss="modal"
+              style="border-radius: 10px"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              class="btn btn-danger px-4 fw-medium"
+              onclick="executeLogout()"
+              style="border-radius: 10px"
+            >
+              Ya, Keluar
+            </button>
           </div>
         </div>
       </div>

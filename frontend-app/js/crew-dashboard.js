@@ -1,19 +1,15 @@
-// Konfigurasi API
 const MENU_API = "http://localhost:3001/api";
 const ORDER_API = "http://localhost:3002/api";
 
 const checkRole = localStorage.getItem("user_role");
 
-// Jika belum login atau rolenya bukan crew, tendang kembali ke home atau login
 if (!checkRole || checkRole != "crew") {
   alert("Akses Ditolak! Halaman ini khusus untuk Crew Restoran.");
-  window.location.href = "login.html"; // Atau home.html
+  window.location.href = "login.html";
 }
 
-// Simulasi Sesi Login Crew
-// Di aplikasi nyata, ini diset saat form login crew berhasil
 if (!localStorage.getItem("crew_resto_id")) {
-  localStorage.setItem("crew_resto_id", "1"); // Default fallback untuk testing
+  localStorage.setItem("crew_resto_id", "1");
 }
 const CREW_RESTO_ID = localStorage.getItem("crew_resto_id");
 
@@ -26,31 +22,23 @@ document.addEventListener("DOMContentLoaded", () => {
     crewName = parsedSession.name || "Crew";
   }
 
-  // Tampilkan di Navbar
   document.getElementById("crew-greeting").innerHTML =
     `Halo, <span class="fw-bold text-dark">Crew ${crewName}</span>!`;
 
-  // Load data lainnya
   loadRestoProfile();
   loadOrders();
   loadMenus();
 });
 
-// ==========================================
-// 1. MANAJEMEN PESANAN (ORDERS)
-// ==========================================
 async function loadOrders() {
   const tbody = document.getElementById("table-orders");
   tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm"></div> Memuat...</td></tr>`;
 
   try {
-    // Asumsi Order Service memiliki endpoint untuk menarik berdasarkan restaurant_id
-    // Jika tidak ada, fetch semua lalu filter di frontend
     const res = await fetch(`${ORDER_API}/orders`);
     const result = await res.json();
 
     let orders = result.data || [];
-    // Filter hanya untuk restoran crew ini, dan urutkan yang terbaru di atas
     orders = orders.filter((o) => o.restaurant_id == CREW_RESTO_ID).reverse();
 
     if (orders.length === 0) {
@@ -89,7 +77,6 @@ async function loadOrders() {
   }
 }
 
-// Fungsi untuk menerima pesanan (Mengubah status di Service Order)
 async function approveOrder(orderId) {
   if (!confirm("Terima pesanan ini dan mulai proses memasak?")) return;
   updateOrderStatus(orderId, "Diproses");
@@ -100,7 +87,6 @@ async function finishOrder(orderId) {
   updateOrderStatus(orderId, "Selesai");
 }
 
-// Harus dipastikan Backend Order Service (Port 3002) memiliki endpoint PUT /api/orders/:id
 async function updateOrderStatus(orderId, newStatus) {
   try {
     const res = await fetch(`${ORDER_API}/orders/${orderId}`, {
@@ -110,7 +96,7 @@ async function updateOrderStatus(orderId, newStatus) {
     });
 
     if (res.ok) {
-      loadOrders(); // Refresh tabel
+      loadOrders();
     } else {
       alert("Gagal mengupdate status pesanan.");
     }
@@ -120,9 +106,6 @@ async function updateOrderStatus(orderId, newStatus) {
   }
 }
 
-// ==========================================
-// 2. MANAJEMEN MENU (CRUD)
-// ==========================================
 let menuModalInstance;
 
 async function loadMenus() {
@@ -136,7 +119,6 @@ async function loadMenus() {
 
     let html = "";
     menus.forEach((menu) => {
-      // Encode data untuk dikirim ke function JS tanpa merusak HTML quotes
       const desc = menu.description || "-";
       const safeDesc = desc.replace(/'/g, "\\'");
       const safeName = menu.name.replace(/'/g, "\\'");
@@ -166,7 +148,7 @@ function openMenuModal(id = "", name = "", price = "", desc = "") {
   document.getElementById("menu-name").value = name;
   document.getElementById("menu-price").value = price;
   document.getElementById("menu-desc").value = desc !== "-" ? desc : "";
-  document.getElementById("menu-image").value = ""; // Reset file input setiap buka modal
+  document.getElementById("menu-image").value = "";
 
   document.getElementById("menuModalTitle").innerText = id
     ? "Edit Menu"
@@ -201,7 +183,7 @@ async function saveMenu() {
   try {
     const res = await fetch(url, {
       method: method,
-      body: formData, // Sama seperti profil, gunakan FormData
+      body: formData,
     });
 
     if (res.ok) {
@@ -230,9 +212,6 @@ async function deleteMenu(id) {
   }
 }
 
-// ==========================================
-// 3. PROFIL RESTORAN
-// ==========================================
 async function loadRestoProfile() {
   try {
     const res = await fetch(
@@ -241,11 +220,9 @@ async function loadRestoProfile() {
     const result = await res.json();
     const resto = result.data;
 
-    // Set Text di Header
     document.getElementById("dash-resto-name").innerText = resto.name;
     document.getElementById("dash-resto-address").innerText = resto.address;
 
-    // Set Value di Form Edit
     document.getElementById("prof-name").value = resto.name;
     document.getElementById("prof-address").value = resto.address;
     document.getElementById("prof-hours").value = resto.jam_operasional || "";
@@ -268,7 +245,6 @@ async function saveRestoProfile() {
   formData.append("is_active", document.getElementById("prof-active").value);
   formData.append("crew_restaurant_id", CREW_RESTO_ID);
 
-  // Jika user memilih file gambar baru, tambahkan ke form data
   const imageFile = document.getElementById("prof-image").files[0];
   if (imageFile) {
     formData.append("image", imageFile);
@@ -277,13 +253,12 @@ async function saveRestoProfile() {
   try {
     const res = await fetch(`${MENU_API}/restaurants/${CREW_RESTO_ID}`, {
       method: "PUT",
-      // Jangan gunakan header Content-Type di sini, biarkan browser yang mengaturnya secara otomatis untuk multipart/form-data
       body: formData,
     });
 
     if (res.ok) {
       alert("Profil restoran berhasil diperbarui!");
-      document.getElementById("prof-image").value = ""; // Reset input file
+      document.getElementById("prof-image").value = "";
       loadRestoProfile();
     } else {
       const err = await res.json();
