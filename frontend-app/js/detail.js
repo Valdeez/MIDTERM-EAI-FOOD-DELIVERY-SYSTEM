@@ -7,6 +7,7 @@ let cart = {};
 let currentRestaurantId = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+  updateNavbar();
   const urlParams = new URLSearchParams(window.location.search);
   currentRestaurantId = urlParams.get("id");
 
@@ -18,6 +19,56 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "home.html";
   }
 });
+
+function updateNavbar() {
+  const navAuth = document.getElementById("nav-auth");
+  const sessionRaw = localStorage.getItem("user_session");
+  const navHistory = document.getElementById("nav-history");
+
+  if (sessionRaw) {
+    // User sudah login → tampilkan avatar + nama + tombol logout
+    const user = JSON.parse(sessionRaw);
+    const firstName = user.name ? user.name.split(" ")[0] : "User";
+    const initial = firstName.charAt(0).toUpperCase();
+    if (navHistory) {
+      navHistory.classList.remove("d-none");
+    }
+    navAuth.innerHTML = `
+      <div class="user-greeting">
+      
+      <span class="fw-bold text-dark" style="font-size: 1.15rem;">Hi, ${firstName}!</span>
+      <button class="btn-logout-modern" data-bs-toggle="modal" data-bs-target="#logoutModal">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+     
+    `;
+  } else {
+    // User belum login → tampilkan tombol Login
+    if (navHistory) {
+      navHistory.classList.add("d-none");
+    }
+    navAuth.innerHTML = `
+      <a href="login.html" class="btn-login-nav shadow-sm">
+        <i class="bi bi-person-circle me-1"></i> Masuk
+      </a>
+    `;
+  }
+}
+
+function executeLogout() {
+  localStorage.removeItem("user_session");
+
+  // (Opsional) Tutup modal secara manual sebelum pindah halaman, biar transisinya lebih mulus
+  const modalElement = document.getElementById("logoutModal");
+  const modalInstance = bootstrap.Modal.getInstance(modalElement);
+  if (modalInstance) {
+    modalInstance.hide();
+  }
+
+  // Pindah ke halaman login
+  window.location.href = "login.html";
+}
 
 // 1. Ambil Detail Restoran
 async function fetchRestaurantDetail(id) {
@@ -151,6 +202,18 @@ function resetPricing() {
 // 5. Checkout Action
 // Jadikan fungsinya async karena kita butuh await untuk API Fetch
 window.handleCheckout = async function () {
+  const sessionRaw = localStorage.getItem("user_session");
+  if (!sessionRaw) {
+    // Panggil modal peringatan login yang sudah kita buat di HTML
+    const loginModal = new bootstrap.Modal(
+      document.getElementById("loginRequiredModal"),
+    );
+    loginModal.show();
+
+    return; // Hentikan proses fungsi sampai di sini
+  }
+  const user = JSON.parse(sessionRaw);
+  const userId = user.id;
   const btn = document.getElementById("btn-confirm");
   const totalAmount = parseInt(
     document.getElementById("total").innerText.replace(/[^0-9]/g, ""),
@@ -163,7 +226,7 @@ window.handleCheckout = async function () {
   try {
     // --- PROSES 1: INSERT KE TABEL 'orders' ---
     const orderPayload = {
-      user_id: 1, // Simulasi User ID
+      user_id: userId, // Simulasi User ID
       restaurant_id: currentRestaurantId,
       total_amount: totalAmount,
     };
