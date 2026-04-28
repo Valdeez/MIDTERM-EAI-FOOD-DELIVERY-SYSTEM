@@ -15,13 +15,11 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Konfigurasi Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "public/uploads/");
   },
   filename: (req, file, cb) => {
-    // Memberi nama unik: timestamp + ekstensi asli
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
@@ -40,8 +38,6 @@ db.connect((err) => {
   if (err) throw err;
   console.log("Connected to db_restaurant");
 });
-
-// --- RESTAURANT ENDPOINTS ---
 
 app.get("/api/restaurants", (req, res) => {
   const { search } = req.query;
@@ -130,7 +126,6 @@ app.put("/api/restaurants/:id", upload.single("image"), (req, res) => {
     restoId,
   ];
 
-  // Jika crew mengupload gambar baru
   if (req.file) {
     sqlQuery =
       "UPDATE restaurants SET name=?, address=?, deskripsi=?, jam_operasional=?, is_active=?, image=? WHERE id=?";
@@ -151,8 +146,6 @@ app.put("/api/restaurants/:id", upload.single("image"), (req, res) => {
   });
 });
 
-// --- MENU ENDPOINTS ---
-
 app.get("/api/menus/detail", (req, res) => {
   const { restaurant_id } = req.query;
   db.query(
@@ -165,7 +158,6 @@ app.get("/api/menus/detail", (req, res) => {
   );
 });
 
-// POST tambah menu (Dengan Gambar)
 app.post("/api/menus", upload.single("image"), (req, res) => {
   const { restaurant_id, name, price, description, crew_restaurant_id } =
     req.body;
@@ -190,7 +182,6 @@ app.post("/api/menus", upload.single("image"), (req, res) => {
   );
 });
 
-// PUT update menu (Dengan Gambar)
 app.put("/api/menus/:id", upload.single("image"), (req, res) => {
   const menuId = req.params.id;
   const { name, price, description, crew_restaurant_id } = req.body;
@@ -222,7 +213,6 @@ app.put("/api/menus/:id", upload.single("image"), (req, res) => {
   });
 });
 
-// DELETE menu
 app.delete("/api/menus/:id", (req, res) => {
   const menuId = req.params.id;
   const { crew_restaurant_id } = req.body;
