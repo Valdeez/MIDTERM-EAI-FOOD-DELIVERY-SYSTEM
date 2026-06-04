@@ -10,7 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "apollo-server-core": "^3.13.0",
     "axios": "^1.15.0",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "mysql2": "^3.22.0"
   }
