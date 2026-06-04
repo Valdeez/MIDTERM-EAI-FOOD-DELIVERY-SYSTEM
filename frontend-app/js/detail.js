@@ -1,8 +1,6 @@
-// Konfigurasi API
-const API_BASE_URL = "http://localhost:3001/api";
-const ORDER_API_URL = "http://localhost:3002/api";
+const API_BASE_URL = "http:localhost:3001/api";
+const ORDER_API_URL = "http:localhost:3002/api";
 
-// State aplikasi
 let cart = {};
 let currentRestaurantId = null;
 
@@ -26,7 +24,6 @@ function updateNavbar() {
   const navHistory = document.getElementById("nav-history");
 
   if (sessionRaw) {
-    // User sudah login → tampilkan avatar + nama + tombol logout
     const user = JSON.parse(sessionRaw);
     const firstName = user.name ? user.name.split(" ")[0] : "User";
     const initial = firstName.charAt(0).toUpperCase();
@@ -44,7 +41,6 @@ function updateNavbar() {
      
     `;
   } else {
-    // User belum login → tampilkan tombol Login
     if (navHistory) {
       navHistory.classList.add("d-none");
     }
@@ -59,18 +55,15 @@ function updateNavbar() {
 function executeLogout() {
   localStorage.removeItem("user_session");
 
-  // (Opsional) Tutup modal secara manual sebelum pindah halaman, biar transisinya lebih mulus
   const modalElement = document.getElementById("logoutModal");
   const modalInstance = bootstrap.Modal.getInstance(modalElement);
   if (modalInstance) {
     modalInstance.hide();
   }
 
-  // Pindah ke halaman login
   window.location.href = "login.html";
 }
 
-// 1. Ambil Detail Restoran
 async function fetchRestaurantDetail(id) {
   try {
     const response = await fetch(`${API_BASE_URL}/restaurants/detail?id=${id}`);
@@ -84,13 +77,12 @@ async function fetchRestaurantDetail(id) {
     document.getElementById("resto-hours").innerText =
       resto.jam_operasional || "-";
     document.getElementById("resto-image").src =
-      `http://localhost:3001${resto.image}`;
+      `http:localhost:3001${resto.image}`;
   } catch (error) {
     console.error("Gagal mengambil detail restoran:", error);
   }
 }
 
-// 2. Ambil Daftar Menu
 async function fetchRestaurantMenus(id) {
   try {
     const response = await fetch(
@@ -105,7 +97,6 @@ async function fetchRestaurantMenus(id) {
   }
 }
 
-// 3. Render Menu
 function renderMenus(menus) {
   const container = document.getElementById("menu-items");
   container.innerHTML = "";
@@ -116,7 +107,7 @@ function renderMenus(menus) {
   }
 
   menus.forEach((menu) => {
-    const menuImage = `http://localhost:3001${menu.image}`;
+    const menuImage = `http:localhost:3001${menu.image}`;
 
     const itemHtml = `
             <div class="menu-item-card">
@@ -140,10 +131,7 @@ function renderMenus(menus) {
   });
 }
 
-// 4. Logika Keranjang (Dibuat global agar bisa diakses dari atribut onclick)
-// Tambahkan parameter 'image'
 window.changeQty = function (id, delta, name, price, image) {
-  // Simpan juga imagenya ke dalam cart
   if (!cart[id])
     cart[id] = { name: name, price: parseInt(price), qty: 0, image: image };
 
@@ -199,18 +187,15 @@ function resetPricing() {
   document.getElementById("total").innerText = "Rp 0";
 }
 
-// 5. Checkout Action
-// Jadikan fungsinya async karena kita butuh await untuk API Fetch
 window.handleCheckout = async function () {
   const sessionRaw = localStorage.getItem("user_session");
   if (!sessionRaw) {
-    // Panggil modal peringatan login yang sudah kita buat di HTML
     const loginModal = new bootstrap.Modal(
       document.getElementById("loginRequiredModal"),
     );
     loginModal.show();
 
-    return; // Hentikan proses fungsi sampai di sini
+    return;
   }
   const user = JSON.parse(sessionRaw);
   const userId = user.id;
@@ -219,19 +204,17 @@ window.handleCheckout = async function () {
     document.getElementById("total").innerText.replace(/[^0-9]/g, ""),
   );
 
-  // Ubah status tombol biar tidak di-spam klik
   btn.disabled = true;
   btn.innerText = "Memproses Pesanan...";
 
   try {
-    // --- PROSES 1: INSERT KE TABEL 'orders' ---
     const orderPayload = {
-      user_id: userId, // Simulasi User ID
+      user_id: userId,
       restaurant_id: currentRestaurantId,
       total_amount: totalAmount,
     };
 
-    const orderRes = await fetch("http://localhost:3002/api/orders", {
+    const orderRes = await fetch("http:localhost:3002/api/orders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(orderPayload),
@@ -243,7 +226,6 @@ window.handleCheckout = async function () {
 
     const newOrderId = orderResult.order_id;
 
-    // --- PROSES 2: INSERT KE TABEL 'order_items' ---
     const itemPromises = [];
 
     for (const menuId in cart) {
@@ -255,7 +237,7 @@ window.handleCheckout = async function () {
           price: cart[menuId].price,
         };
 
-        const itemReq = fetch("http://localhost:3002/api/order-items", {
+        const itemReq = fetch("http:localhost:3002/api/order-items", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(itemPayload),
@@ -264,18 +246,12 @@ window.handleCheckout = async function () {
       }
     }
 
-    // Tunggu semua menu berhasil masuk ke keranjang di database
     await Promise.all(itemPromises);
-
-    // --- PROSES 3: LEMPAR KE HALAMAN PAYMENT ---
-    // Bawa data order_id dan amount lewat URL
-    // Ganti baris "window.location.href" di detail.js kamu dengan baris ini:
     window.location.href = `payment.html?order_id=${newOrderId}&amount=${totalAmount}&restaurant_id=${currentRestaurantId}`;
   } catch (error) {
     console.error("Checkout error:", error);
     alert(`Terjadi kesalahan: ${error.message}`);
 
-    // Kembalikan tombol seperti semula jika gagal
     btn.disabled = false;
     btn.innerText = "Konfirmasi Pesanan";
   }

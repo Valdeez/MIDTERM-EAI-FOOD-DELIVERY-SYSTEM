@@ -90,21 +90,16 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
       loginAlert.innerHTML = `<i class="fa-solid fa-circle-check"></i> Berhasil! Mengalihkan...`;
       loginAlert.style.display = "flex";
 
-      // Simpan data lengkap ke user_session (bawaan kodingan aslimu)
       localStorage.setItem("user_session", JSON.stringify(result.data));
 
-      // Simpan variabel satuan untuk dipakai oleh sistem Dashboard & RBAC yang kita buat
       localStorage.setItem("user_id", result.data.id || result.data.user_id);
       localStorage.setItem("user_role", result.data.role);
 
-      // Cek Role untuk mengarahkan halaman
       setTimeout(() => {
         if (result.data.role === "crew") {
-          // Jika crew, simpan ID restorannya dan lempar ke dashboard
           localStorage.setItem("crew_resto_id", result.data.restaurant_id);
           window.location.href = "crew-dashboard.html";
         } else {
-          // Jika customer biasa, lempar ke home
           window.location.href = "home.html";
         }
       }, 1000);
