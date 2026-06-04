@@ -1,26 +1,21 @@
-const mysql = require('mysql2/promise');
-const { ApolloServer } = require('@apollo/server');
-const { startStandaloneServer } = require('@apollo/server/standalone');
+// file: user-service/index.js
+const { ApolloServer } = require("@apollo/server");
+const { startStandaloneServer } = require("@apollo/server/standalone");
+const { buildSubgraphSchema } = require("@apollo/subgraph");
 
-const typeDefs = require('./schema');
-const resolvers = require('./resolvers');
-
-const pool = mysql.createPool({ 
-    host: 'localhost', 
-    user: 'root', 
-    password: '', 
-    database: 'db_user' 
-});
+const typeDefs = require("./schema");
+const resolvers = require("./resolvers"); // Pastikan koneksi pool dipindah ke dalam file ini
 
 async function startServer() {
-    const server = new ApolloServer({ typeDefs, resolvers });
+  const server = new ApolloServer({
+    schema: buildSubgraphSchema({ typeDefs, resolvers }),
+  });
 
-    const { url } = await startStandaloneServer(server, {
-        listen: { port: 3004 },
-        context: async () => ({ pool }) 
-    });
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 3004 },
+  });
 
-    console.log(`User Service (Modular) berjalan lancar 🚀 di ${url}`);
+  console.log(`🚀 User Subgraph berjalan di ${url}`);
 }
 
 startServer();

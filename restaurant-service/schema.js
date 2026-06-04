@@ -1,6 +1,9 @@
-const { buildSchema } = require("graphql");
+const gql = require("graphql-tag");
 
-const schema = buildSchema(`
+const typeDefs = gql`
+  extend schema
+    @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])
+
   type Restaurant {
     id: ID!
     name: String!
@@ -89,11 +92,8 @@ const schema = buildSchema(`
       image: String
     ): MutationResponse
 
-    deleteMenu(
-      id: ID!
-      crew_restaurant_id: ID!
-    ): MutationResponse
+    deleteMenu(id: ID!, crew_restaurant_id: ID!): MutationResponse
   }
-`);
+`;
 
-module.exports = schema;
+module.exports = typeDefs;
