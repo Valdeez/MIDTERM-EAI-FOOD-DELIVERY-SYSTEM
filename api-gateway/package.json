@@ -10,8 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@apollo/gateway": "^2.14.1",
+    "@apollo/server": "^5.5.1",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "graphql": "^16.14.1",
     "http-proxy-middleware": "^3.0.5",
     "swagger-ui-express": "^5.0.1"
   }
