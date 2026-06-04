@@ -1,8 +1,5 @@
-// file: js/api.js
-
 const BASE_URL = "http://localhost:3000/api";
 
-// Fungsi helper untuk mengirim data (POST)
 async function apiPost(endpoint, data) {
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -25,7 +22,6 @@ async function apiPost(endpoint, data) {
   }
 }
 
-// Fungsi helper untuk mengambil data (GET)
 async function apiGet(endpoint) {
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`);
