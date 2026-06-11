@@ -1,11 +1,9 @@
-const mysql = require("mysql2/promise");
-
-// Koneksi database langsung diletakkan di sini
+const mysql = require('mysql2');
 const pool = mysql.createPool({
-  host: "localhost",
+  host: "mysql-db",
   user: "root",
-  password: "",
-  database: "db_user",
+  password: "",    
+  database: "db_user" 
 });
 
 const resolvers = {
