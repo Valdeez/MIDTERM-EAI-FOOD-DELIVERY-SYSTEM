@@ -1,3 +1,11 @@
+const mysql = require('mysql2');
+const pool = mysql.createPool({
+  host: "mysql-db",
+  user: "root",
+  password: "",    
+  database: "db_user" 
+});
+
 const resolvers = {
   Query: {
     
