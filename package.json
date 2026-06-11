@@ -1,6 +1,11 @@
 {
   "dependencies": {
-    "cors": "^2.8.6"
+    "apollo-server-express": "^3.13.0",
+    "axios": "^1.17.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "graphql": "^16.14.1",
+    "mysql2": "^3.22.4"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

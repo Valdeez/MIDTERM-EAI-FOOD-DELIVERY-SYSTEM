@@ -1,43 +1,22 @@
-const express = require('express');
-const axios = require('axios'); 
-const mysql = require('mysql2');
-const app = express();
-app.use(express.json());
+// file: payment-service/index.js
+const { ApolloServer } = require("@apollo/server");
+const { startStandaloneServer } = require("@apollo/server/standalone");
+const { buildSubgraphSchema } = require("@apollo/subgraph");
 
-const db = mysql.createConnection({ host: 'localhost', user: 'root', password: '', database: 'db_payment' });
+// Minta temanmu untuk memindahkan 'typeDefs gql`...`' ke file schema.js
+const typeDefs = require("./schema");
+const resolvers = require("./resolvers"); // Pastikan koneksi DB dipindah ke dalam file ini
 
-app.post('/api/payments', (req, res) => {
-    const { order_id, payment_method, amount } = req.body;
-    const va_number = '88' + Math.floor(1000000000 + Math.random() * 9000000000); 
-    
-    db.query('INSERT INTO payments (order_id, payment_method, va_number, amount, status) VALUES (?, ?, ?, ?, "Unpaid")', 
-    [order_id, payment_method, va_number, amount], 
-    (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({ message: "Tagihan berhasil dibuat", va_number: va_number });
-    });
-});
+async function startServer() {
+  const server = new ApolloServer({
+    schema: buildSubgraphSchema({ typeDefs, resolvers }),
+  });
 
-app.put('/api/payments/status', (req, res) => {
-    const { order_id, status } = req.body; 
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 3003 },
+  });
 
-    db.query('UPDATE payments SET status = ? WHERE order_id = ?', [status, order_id], async (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
+  console.log(`🚀 Payment Subgraph berjalan di ${url}`);
+}
 
-        if (status === 'Paid') {
-            try {
-                await axios.put(`http://localhost:3002/api/orders/status`, {
-                    order_id: order_id,
-                    status: 'Diproses'
-                });
-                
-                return res.json({ message: "Pembayaran lunas, notifikasi ke Order Service berhasil. Makanan diproses." });
-            } catch (error) {
-                return res.status(500).json({ message: "Pembayaran berhasil, tapi gagal mengupdate Order Service", error: error.message });
-            }
-        }
-        res.json({ message: "Status pembayaran diupdate" });
-    });
-});
-
-app.listen(3003, () => console.log('Payment Service running on port 3003'));
+startServer();

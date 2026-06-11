@@ -1,30 +1,36 @@
-const express = require("express");
-const { createProxyMiddleware } = require("http-proxy-middleware");
-const swaggerUi = require("swagger-ui-express");
-const swaggerDocument = require("./swagger.json");
-const cors = require("cors");
+// file: api-gateway/index.js
+const { ApolloServer } = require("@apollo/server");
+const { startStandaloneServer } = require("@apollo/server/standalone");
+const { ApolloGateway, IntrospectAndCompose } = require("@apollo/gateway");
 
-const app = express();
-const PORT = 3000;
-app.use(cors());
-
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
-app.use(
-  createProxyMiddleware({
-    target: "http://localhost:3001",
-    changeOrigin: true,
-    router: {
-      "/api/restaurants": "http://localhost:3001",
-      "/api/menus": "http://localhost:3001",
-      "/api/orders": "http://localhost:3002",
-      "/api/history": "http://localhost:3002",
-      "/api/payments": "http://localhost:3003",
-      "/api/users": "http://localhost:3004",
-    },
+const gateway = new ApolloGateway({
+  supergraphSdl: new IntrospectAndCompose({
+    subgraphs: [
+      { name: "restaurants", url: "http://restaurant-service:3001" },
+      { name: "orders", url: "http://order-service:3002" },
+      { name: "payments", url: "http://payment-service:3003" },
+      { name: "users", url: "http://user-service:3004" },
+    ],
   }),
-);
+});
 
-app.listen(PORT, () =>
-  console.log(`API Gateway running on http://localhost:${PORT}`),
-);
+async function startGateway() {
+  const server = new ApolloServer({
+    gateway,
+  });
+
+  try {
+    const { url } = await startStandaloneServer(server, {
+      listen: { port: 3000 },
+    });
+
+    console.log(`🚀 API Gateway (Supergraph) berjalan di ${url}`);
+  } catch (error) {
+    console.error(
+      "Gagal menyalakan API Gateway. Pastikan order-service di port 3002 sedang berjalan!",
+      error.message,
+    );
+  }
+}
+
+startGateway();
