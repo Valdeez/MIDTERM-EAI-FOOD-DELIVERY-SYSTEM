@@ -10,8 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@apollo/gateway": "^2.14.1",
+    "@apollo/server": "^5.5.1",
+    "@apollo/subgraph": "^2.14.1",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "graphql": "^16.14.1",
+    "graphql-tag": "^2.12.6",
     "multer": "^2.1.1",
     "mysql2": "^3.22.0"
   }

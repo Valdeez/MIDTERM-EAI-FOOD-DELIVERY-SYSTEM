@@ -1,64 +1,22 @@
-// index.js
-const express = require('express');
-const { ApolloServer, gql } = require('apollo-server-express');
-const { ApolloServerPluginLandingPageLocalDefault } = require('apollo-server-core');
-const mysql = require('mysql2/promise');
-const cors = require('cors');
-const createResolvers = require('./resolvers'); // ✅ Import dari file terpisah
+// file: payment-service/index.js
+const { ApolloServer } = require("@apollo/server");
+const { startStandaloneServer } = require("@apollo/server/standalone");
+const { buildSubgraphSchema } = require("@apollo/subgraph");
 
-const pool = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'db_payment'
-});
-
-const typeDefs = gql`
-    type Payment {
-        id: ID
-        order_id: Int!
-        payment_method: String!
-        va_number: String!
-        amount: Int!
-        status: String!
-    }
-
-    type Query {
-        getPayment(order_id: Int!): Payment
-    }
-
-    type Mutation {
-        createPayment(order_id: Int!, payment_method: String!, amount: Int!): Payment
-        updatePaymentStatus(order_id: Int!, status: String!): Payment
-    }
-`;
+// Minta temanmu untuk memindahkan 'typeDefs gql`...`' ke file schema.js
+const typeDefs = require("./schema");
+const resolvers = require("./resolvers"); // Pastikan koneksi DB dipindah ke dalam file ini
 
 async function startServer() {
-    const app = express();
-    app.use(cors());
+  const server = new ApolloServer({
+    schema: buildSubgraphSchema({ typeDefs, resolvers }),
+  });
 
-    const server = new ApolloServer({
-        typeDefs,
-        resolvers: createResolvers(pool), // ✅ Pool dipass ke resolver
-        introspection: true,
-        plugins: [
-            ApolloServerPluginLandingPageLocalDefault({ embed: true })
-        ]
-    });
+  const { url } = await startStandaloneServer(server, {
+    listen: { port: 3003 },
+  });
 
-    await server.start();
-
-    server.applyMiddleware({
-        app,
-        path: '/graphql',
-        cors: false
-    });
-
-    app.listen(3003, () => {
-        console.log(`✅ Payment Service running at http://localhost:3003/graphql`);
-    });
+  console.log(`🚀 Payment Subgraph berjalan di ${url}`);
 }
 
-startServer().catch(err => {
-    console.error('❌ Gagal start server:', err);
-});
+startServer();
