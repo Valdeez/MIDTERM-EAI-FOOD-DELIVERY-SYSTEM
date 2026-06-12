@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise'); 
 const pool = mysql.createPool({
   host: "mysql-db",
   user: "root",
@@ -8,12 +8,12 @@ const pool = mysql.createPool({
 
 const resolvers = {
   Query: {
-    users: async (_, __, { pool }) => {
+    users: async () => {
       const [rows] = await pool.query("SELECT * FROM users");
       return rows;
     },
 
-    user: async (_, { id }, { pool }) => {
+    user: async (_, { id }) => {
       console.log("🚀 Server menerima request mencari ID:", id);
       const [rows] = await pool.query("SELECT * FROM users WHERE id = ?", [id]);
       return rows[0] || null;
@@ -21,7 +21,7 @@ const resolvers = {
   },
 
   Mutation: {
-    register: async (_, { name, password, role, restaurant_id }, { pool }) => {
+    register: async (_, { name, password, role, restaurant_id }) => {
       const assignRole = role || "customer";
       const [result] = await pool.query(
         "INSERT INTO users (name, password, role, restaurant_id) VALUES (?, ?, ?, ?)",
@@ -33,7 +33,7 @@ const resolvers = {
       };
     },
 
-    login: async (_, { name, password }, { pool }) => {
+    login: async (_, { name, password }) => {
       if (!name || !password)
         throw new Error("Nama dan kata sandi harus diisi!");
       const [rows] = await pool.query(
