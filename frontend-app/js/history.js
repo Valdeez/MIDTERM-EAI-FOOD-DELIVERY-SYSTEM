@@ -1,6 +1,3 @@
-const ORDER_API = "http://localhost:3002/api";
-const MENU_API = "http://localhost:3001/api";
-
 document.addEventListener("DOMContentLoaded", () => {
   muatDataPesanan();
   updateNavbar();
@@ -52,6 +49,8 @@ function executeLogout() {
   window.location.href = "login.html";
 }
 
+const GATEWAY_URL = "http://localhost:3000/";
+
 async function muatDataPesanan() {
   const tbody = document.getElementById("tabelHistori");
   const sessionRaw = localStorage.getItem("user_session");
@@ -68,23 +67,69 @@ async function muatDataPesanan() {
     `;
 
   try {
-    const res = await fetch(`${ORDER_API}/orders?user_id=${userId}`);
+    const queryOrders = `
+      query GetOrders($userId: Int) {
+        getOrders(user_id: $userId) {
+          id
+          restaurant_id
+          total_amount
+          status
+        }
+      }
+    `;
+
+    const res = await fetch(GATEWAY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: queryOrders,
+        variables: { userId: parseInt(userId) },
+      }),
+    });
+
     const result = await res.json();
 
-    if (!res.ok) throw new Error(result.error || "Gagal mengambil data");
+    if (result.errors)
+      throw new Error(
+        result.errors[0].message || "Gagal mengambil data pesanan",
+      );
 
-    const orders = result.data || [];
+    const orders = result.data.getOrders || [];
 
     const uniqueRestoIds = [...new Set(orders.map((o) => o.restaurant_id))];
     const restoNames = {};
 
+    const queryRestaurant = `
+      query GetRestaurant($id: ID!) {
+        restaurantDetail(id: $id) {
+          data {
+            name
+          }
+        }
+      }
+    `;
+
     await Promise.all(
       uniqueRestoIds.map(async (id) => {
         try {
-          const rRes = await fetch(`${MENU_API}/restaurants/detail?id=${id}`);
+          const rRes = await fetch(GATEWAY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query: queryRestaurant,
+              variables: { id: id.toString() },
+            }),
+          });
+
           const rData = await rRes.json();
-          if (rData.data && rData.data.name) {
-            restoNames[id] = rData.data.name;
+
+          if (
+            rData.data &&
+            rData.data.restaurantDetail &&
+            rData.data.restaurantDetail.data &&
+            rData.data.restaurantDetail.data.name
+          ) {
+            restoNames[id] = rData.data.restaurantDetail.data.name;
           } else {
             restoNames[id] = `Resto-${id}`;
           }
@@ -101,7 +146,7 @@ async function muatDataPesanan() {
                 <td colspan="5" class="text-center py-5 text-danger">
                     <i class="bi bi-exclamation-triangle fs-3 d-block mb-2"></i>
                     <strong>Error:</strong> ${error.message} <br>
-                    <small>Pastikan Order Service (port 3002) berjalan.</small>
+                    <small>Pastikan API Gateway (port 3000) berjalan.</small>
                 </td>
             </tr>
         `;
