@@ -1,4 +1,4 @@
-const API_BASE_URL = "http:localhost:3001/api";
+const API_BASE_URL = "http://localhost:3000/";
 const ORDER_API_URL = "http:localhost:3002/api";
 
 let cart = {};
@@ -66,9 +66,37 @@ function executeLogout() {
 
 async function fetchRestaurantDetail(id) {
   try {
-    const response = await fetch(`${API_BASE_URL}/restaurants/detail?id=${id}`);
+    // 1. Definisikan Query GraphQL
+    const query = `
+      query GetRestaurantDetail($id: ID!) {
+        restaurantDetail(id: $id) {
+          data {
+            name
+            address
+            deskripsi
+            jam_operasional
+            image
+          }
+        }
+      }
+    `;
+
+    // 2. Kirim request POST ke endpoint GraphQL
+    const response = await fetch(API_BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: query,
+        variables: { id: id },
+      }),
+    });
+
     const result = await response.json();
-    const resto = result.data;
+    
+    // 3. Ekstrak data sesuai dengan struktur JSON balasan GraphQL
+    const resto = result.data.restaurantDetail.data;
 
     document.getElementById("resto-name").innerText = resto.name;
     document.getElementById("resto-address").innerText = resto.address;
@@ -76,8 +104,10 @@ async function fetchRestaurantDetail(id) {
       resto.deskripsi || "Tidak ada deskripsi.";
     document.getElementById("resto-hours").innerText =
       resto.jam_operasional || "-";
+      
+    // Info: Saya menambahkan "//" yang kurang pada http:localhost menjadi http://localhost
     document.getElementById("resto-image").src =
-      `http:localhost:3001${resto.image}`;
+      `http://localhost:3000${resto.image}`;
   } catch (error) {
     console.error("Gagal mengambil detail restoran:", error);
   }
@@ -85,11 +115,38 @@ async function fetchRestaurantDetail(id) {
 
 async function fetchRestaurantMenus(id) {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/menus/detail?restaurant_id=${id}`,
-    );
+    // 1. Definisikan Query GraphQL
+    const query = `
+      query GetMenuDetail($restaurant_id: ID!) {
+        menuDetail(restaurant_id: $restaurant_id) {
+          data {
+            id
+            name
+            price
+            description
+            image
+          }
+        }
+      }
+    `;
+
+    // 2. Kirim request POST
+    const response = await fetch(API_BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query: query,
+        variables: { restaurant_id: id },
+      }),
+    });
+
     const result = await response.json();
-    renderMenus(result.data);
+    
+    // 3. Lempar array data menu ke fungsi render
+    const menus = result.data.menuDetail.data;
+    renderMenus(menus);
   } catch (error) {
     console.error("Gagal mengambil menu:", error);
     document.getElementById("menu-items").innerHTML =
@@ -107,7 +164,8 @@ function renderMenus(menus) {
   }
 
   menus.forEach((menu) => {
-    const menuImage = `http:localhost:3001${menu.image}`;
+    // Info: Saya menambahkan "//" yang kurang pada http:localhost menjadi http://localhost
+    const menuImage = `http://localhost:3001${menu.image}`;
 
     const itemHtml = `
             <div class="menu-item-card">
