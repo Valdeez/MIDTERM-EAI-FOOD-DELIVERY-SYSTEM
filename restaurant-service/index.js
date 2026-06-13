@@ -1,21 +1,32 @@
-// file: restaurant-service/index.js
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
 const { ApolloServer } = require("@apollo/server");
-const { startStandaloneServer } = require("@apollo/server/standalone");
+const { expressMiddleware } = require("@as-integrations/express5");
 const { buildSubgraphSchema } = require("@apollo/subgraph");
 
 const typeDefs = require("./schema");
-const resolvers = require("./resolvers"); // Pastikan koneksi DB dipindah ke dalam file ini
+const resolvers = require("./resolvers");
 
 async function startServer() {
+  const app = express();
+
+  app.use("/public", express.static(path.join(__dirname, "public")));
+
   const server = new ApolloServer({
     schema: buildSubgraphSchema({ typeDefs, resolvers }),
   });
 
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: 3001 },
-  });
+  await server.start();
 
-  console.log(`🚀 Restaurant Subgraph berjalan di ${url}`);
+  app.use("/", cors(), express.json(), expressMiddleware(server));
+
+  app.listen(3001, () => {
+    console.log(
+      `🚀 Restaurant Subgraph (GraphQL) berjalan di http://localhost:3001`,
+    );
+    console.log(`🖼️ Akses gambar tersedia di http://localhost:3001/public/...`);
+  });
 }
 
 startServer();
