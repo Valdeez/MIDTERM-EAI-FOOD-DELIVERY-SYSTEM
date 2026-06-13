@@ -1,5 +1,4 @@
 const API_BASE_URL = "http://localhost:3000/";
-const ORDER_API_URL = "http:localhost:3002/api";
 
 let cart = {};
 let currentRestaurantId = null;
@@ -94,7 +93,7 @@ async function fetchRestaurantDetail(id) {
     });
 
     const result = await response.json();
-    
+
     // 3. Ekstrak data sesuai dengan struktur JSON balasan GraphQL
     const resto = result.data.restaurantDetail.data;
 
@@ -104,10 +103,10 @@ async function fetchRestaurantDetail(id) {
       resto.deskripsi || "Tidak ada deskripsi.";
     document.getElementById("resto-hours").innerText =
       resto.jam_operasional || "-";
-      
+
     // Info: Saya menambahkan "//" yang kurang pada http:localhost menjadi http://localhost
     document.getElementById("resto-image").src =
-      `http://localhost:3000${resto.image}`;
+      `http://localhost:3001${resto.image}`;
   } catch (error) {
     console.error("Gagal mengambil detail restoran:", error);
   }
@@ -143,7 +142,7 @@ async function fetchRestaurantMenus(id) {
     });
 
     const result = await response.json();
-    
+
     // 3. Lempar array data menu ke fungsi render
     const menus = result.data.menuDetail.data;
     renderMenus(menus);
@@ -252,9 +251,9 @@ window.handleCheckout = async function () {
       document.getElementById("loginRequiredModal"),
     );
     loginModal.show();
-
     return;
   }
+
   const user = JSON.parse(sessionRaw);
   const userId = user.id;
   const btn = document.getElementById("btn-confirm");
@@ -266,40 +265,76 @@ window.handleCheckout = async function () {
   btn.innerText = "Memproses Pesanan...";
 
   try {
+    // 1. Mutasi GraphQL untuk membuat Order
+    const createOrderMutation = `
+      mutation CreateOrder($userId: Int!, $restaurantId: Int!, $totalAmount: Float!) {
+        createOrder(user_id: $userId, restaurant_id: $restaurantId, total_amount: $totalAmount) {
+          id
+        }
+      }
+    `;
+
+    // orderPayload disesuaikan dengan format body GraphQL
     const orderPayload = {
-      user_id: userId,
-      restaurant_id: currentRestaurantId,
-      total_amount: totalAmount,
+      query: createOrderMutation,
+      variables: {
+        userId: parseInt(userId),
+        restaurantId: parseInt(currentRestaurantId),
+        totalAmount: parseFloat(totalAmount),
+      },
     };
 
-    const orderRes = await fetch("http:localhost:3002/api/orders", {
+    const orderRes = await fetch(API_BASE_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(orderPayload),
     });
 
     const orderResult = await orderRes.json();
-    if (!orderRes.ok)
-      throw new Error(orderResult.error || "Gagal membuat order");
 
-    const newOrderId = orderResult.order_id;
+    // Penanganan error khas GraphQL
+    if (orderResult.errors) {
+      throw new Error(orderResult.errors[0].message || "Gagal membuat order");
+    }
+
+    // Mengambil ID dari struktur respon GraphQL (data.createOrder.id)
+    const newOrderId = orderResult.data.createOrder.id;
+
+    // 2. Mutasi GraphQL untuk setiap Item Pesanan
+    const addItemMutation = `
+      mutation AddOrderItem($orderId: Int!, $menuId: Int!, $qty: Int!, $price: Float!) {
+        addOrderItem(order_id: $orderId, menu_id: $menuId, qty: $qty, price: $price) {
+          id
+        }
+      }
+    `;
 
     const itemPromises = [];
 
     for (const menuId in cart) {
       if (cart[menuId].qty > 0) {
+        // itemPayload disesuaikan dengan format body GraphQL
         const itemPayload = {
-          order_id: newOrderId,
-          menu_id: menuId,
-          qty: cart[menuId].qty,
-          price: cart[menuId].price,
+          query: addItemMutation,
+          variables: {
+            orderId: parseInt(newOrderId),
+            menuId: parseInt(menuId),
+            qty: parseInt(cart[menuId].qty),
+            price: parseFloat(cart[menuId].price),
+          },
         };
 
-        const itemReq = fetch("http:localhost:3002/api/order-items", {
+        const itemReq = fetch(API_BASE_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(itemPayload),
+        }).then(async (res) => {
+          // Evaluasi error dari masing-masing request item
+          const result = await res.json();
+          if (result.errors) throw new Error(result.errors[0].message);
+          return result;
         });
+
         itemPromises.push(itemReq);
       }
     }
