@@ -1,6 +1,3 @@
-const ORDER_API = "http://localhost:3002/api";
-const MENU_API = "http://localhost:3001/api";
-
 document.addEventListener("DOMContentLoaded", () => {
   muatDataPesanan();
   updateNavbar();
@@ -52,6 +49,8 @@ function executeLogout() {
   window.location.href = "login.html";
 }
 
+const GATEWAY_URL = "http://localhost:3000/";
+
 async function muatDataPesanan() {
   const tbody = document.getElementById("tabelHistori");
   const sessionRaw = localStorage.getItem("user_session");
@@ -68,23 +67,69 @@ async function muatDataPesanan() {
     `;
 
   try {
-    const res = await fetch(`${ORDER_API}/orders?user_id=${userId}`);
+    const queryOrders = `
+      query GetOrders($userId: Int) {
+        getOrders(user_id: $userId) {
+          id
+          restaurant_id
+          total_amount
+          status
+        }
+      }
+    `;
+
+    const res = await fetch(GATEWAY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: queryOrders,
+        variables: { userId: parseInt(userId) },
+      }),
+    });
+
     const result = await res.json();
 
-    if (!res.ok) throw new Error(result.error || "Gagal mengambil data");
+    if (result.errors)
+      throw new Error(
+        result.errors[0].message || "Gagal mengambil data pesanan",
+      );
 
-    const orders = result.data || [];
+    const orders = result.data.getOrders || [];
 
     const uniqueRestoIds = [...new Set(orders.map((o) => o.restaurant_id))];
     const restoNames = {};
 
+    const queryRestaurant = `
+      query GetRestaurant($id: ID!) {
+        restaurantDetail(id: $id) {
+          data {
+            name
+          }
+        }
+      }
+    `;
+
     await Promise.all(
       uniqueRestoIds.map(async (id) => {
         try {
-          const rRes = await fetch(`${MENU_API}/restaurants/detail?id=${id}`);
+          const rRes = await fetch(GATEWAY_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              query: queryRestaurant,
+              variables: { id: id.toString() },
+            }),
+          });
+
           const rData = await rRes.json();
-          if (rData.data && rData.data.name) {
-            restoNames[id] = rData.data.name;
+
+          if (
+            rData.data &&
+            rData.data.restaurantDetail &&
+            rData.data.restaurantDetail.data &&
+            rData.data.restaurantDetail.data.name
+          ) {
+            restoNames[id] = rData.data.restaurantDetail.data.name;
           } else {
             restoNames[id] = `Resto-${id}`;
           }
@@ -101,7 +146,7 @@ async function muatDataPesanan() {
                 <td colspan="5" class="text-center py-5 text-danger">
                     <i class="bi bi-exclamation-triangle fs-3 d-block mb-2"></i>
                     <strong>Error:</strong> ${error.message} <br>
-                    <small>Pastikan Order Service (port 3002) berjalan.</small>
+                    <small>Pastikan API Gateway (port 3000) berjalan.</small>
                 </td>
             </tr>
         `;
@@ -170,19 +215,66 @@ async function tampilkanDetail(
   modalBody.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted small">Memuat detail pesanan...</p></div>`;
 
   try {
-    const itemsRes = await fetch(`${ORDER_API}/order-items/${orderId}`);
+    const queryItems = `
+      query GetOrderItems($orderId: Int!) {
+        getOrderItems(order_id: $orderId) {
+          id
+          menu_id
+          qty
+          price
+        }
+      }
+    `;
+
+    const itemsRes = await fetch(GATEWAY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: queryItems,
+        variables: { orderId: parseInt(orderId) },
+      }),
+    });
+
     const itemsResult = await itemsRes.json();
-    const orderItems = itemsResult.data || [];
+
+    if (itemsResult.errors) throw new Error(itemsResult.errors[0].message);
+
+    const orderItems = itemsResult.data.getOrderItems || [];
 
     let menus = [];
     try {
-      const menuRes = await fetch(
-        `${MENU_API}/menus/detail?restaurant_id=${restaurantId}`,
-      );
+      const queryMenu = `
+        query GetMenuDetail($restaurantId: ID!) {
+          menuDetail(restaurant_id: $restaurantId) {
+            data {
+              id
+              name
+              price
+            }
+          }
+        }
+      `;
+
+      const menuRes = await fetch(GATEWAY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: queryMenu,
+          variables: { restaurantId: restaurantId.toString() },
+        }),
+      });
+
       const menuResult = await menuRes.json();
-      menus = menuResult.data || [];
+
+      if (
+        menuResult.data &&
+        menuResult.data.menuDetail &&
+        menuResult.data.menuDetail.data
+      ) {
+        menus = menuResult.data.menuDetail.data;
+      }
     } catch (e) {
-      console.warn("Gagal mengambil nama menu");
+      console.warn("Gagal mengambil nama menu", e);
     }
 
     const paymentMethod =
@@ -203,7 +295,9 @@ async function tampilkanDetail(
         `;
 
     orderItems.forEach((item) => {
-      const dataMenu = menus.find((m) => m.id === item.menu_id);
+      const dataMenu = menus.find(
+        (m) => m.id.toString() === item.menu_id.toString(),
+      );
       const namaMenu = dataMenu ? dataMenu.name : `Menu ID-${item.menu_id}`;
       const subtotalItem = parseInt(item.qty) * parseInt(item.price);
 
@@ -229,7 +323,7 @@ async function tampilkanDetail(
   } catch (error) {
     modalBody.innerHTML = `
             <div class="alert alert-danger mb-0">
-                Gagal memuat detail barang pesanan.
+                Gagal memuat detail barang pesanan. (${error.message || "Kesalahan jaringan"})
             </div>
         `;
   }

@@ -6,10 +6,10 @@ const { ApolloGateway, IntrospectAndCompose } = require("@apollo/gateway");
 const gateway = new ApolloGateway({
   supergraphSdl: new IntrospectAndCompose({
     subgraphs: [
-      // { name: "restaurants", url: "http://localhost:3001" },
-      { name: "orders", url: "http://localhost:3002" },
-      // { name: "payments", url: "http://localhost:3003" },
-      // { name: "users", url: "http://localhost:3004" },
+      { name: "restaurants", url: "http://restaurant-service:3001" },
+      { name: "orders", url: "http://order-service:3002" },
+      { name: "payments", url: "http://payment-service:3003" },
+      { name: "users", url: "http://user-service:3004" },
     ],
   }),
 });

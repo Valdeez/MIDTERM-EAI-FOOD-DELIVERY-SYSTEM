@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:3004/api";
+const API_BASE = "http://localhost:3004/";
 
 const authContainer = document.getElementById("auth-container");
 const loginView = document.getElementById("login-view");
@@ -45,13 +45,25 @@ document
     const password = document.getElementById("r-password").value;
 
     try {
-      const response = await fetch(`${API_BASE}/users`, {
+      const response = await fetch(API_BASE, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, password, role: "customer" }),
+        body: JSON.stringify({
+          query: `
+            mutation Register($name: String!, $password: String!, $role: String) {
+              register(name: $name, password: $password, role: $role) {
+                message
+                user_id
+              }
+            }
+          `,
+          variables: { name: name, password: password, role: "customer" }
+        }),
       });
 
-      if (response.ok) {
+      const result = await response.json();
+
+      if (!result.errors && result.data && result.data.register) {
         regAlert.className = "status-alert status-success";
         regAlert.innerHTML =
           '<i class="fa-solid fa-circle-check"></i> Berhasil daftar! Silakan login.';
@@ -62,12 +74,14 @@ document
         regAlert.innerHTML =
           '<i class="fa-solid fa-circle-xmark"></i> Gagal daftar. Nama mungkin sudah ada.';
         regAlert.style.display = "flex";
+        console.error(result.errors);
       }
     } catch (err) {
       regAlert.className = "status-alert status-error";
       regAlert.innerHTML =
         '<i class="fa-solid fa-plug-circle-xmark"></i> Server tidak merespon.';
       regAlert.style.display = "flex";
+      console.error(err);
     }
   });
 
@@ -77,27 +91,43 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
   const password = lPassword.value;
 
   try {
-    const response = await fetch(`${API_BASE}/login`, {
+    const response = await fetch(API_BASE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, password }),
+      body: JSON.stringify({
+        query: `
+          mutation Login($name: String!, $password: String!) {
+            login(name: $name, password: $password) {
+              message
+              data {
+                id
+                name
+                role
+                restaurant_id
+              }
+            }
+          }
+        `,
+        variables: { name: name, password: password }
+      }),
     });
 
     const result = await response.json();
 
-    if (response.ok) {
+    if (!result.errors && result.data && result.data.login) {
       loginAlert.className = "status-alert status-success";
       loginAlert.innerHTML = `<i class="fa-solid fa-circle-check"></i> Berhasil! Mengalihkan...`;
       loginAlert.style.display = "flex";
 
-      localStorage.setItem("user_session", JSON.stringify(result.data));
+      const userData = result.data.login.data;
 
-      localStorage.setItem("user_id", result.data.id || result.data.user_id);
-      localStorage.setItem("user_role", result.data.role);
+      localStorage.setItem("user_session", JSON.stringify(userData));
+      localStorage.setItem("user_id", userData.id);
+      localStorage.setItem("user_role", userData.role);
 
       setTimeout(() => {
-        if (result.data.role === "crew") {
-          localStorage.setItem("crew_resto_id", result.data.restaurant_id);
+        if (userData.role === "crew") {
+          localStorage.setItem("crew_resto_id", userData.restaurant_id);
           window.location.href = "crew-dashboard.html";
         } else {
           window.location.href = "home.html";
@@ -108,11 +138,13 @@ document.getElementById("login-form").addEventListener("submit", async (e) => {
       loginAlert.innerHTML =
         '<i class="fa-solid fa-circle-exclamation"></i> Username/Password salah.';
       loginAlert.style.display = "flex";
+      console.error(result.errors);
     }
   } catch (err) {
     loginAlert.className = "status-alert status-error";
     loginAlert.innerHTML =
       '<i class="fa-solid fa-plug-circle-xmark"></i> Server mati.';
     loginAlert.style.display = "flex";
+    console.error(err);
   }
 });
