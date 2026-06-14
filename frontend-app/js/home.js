@@ -26,11 +26,11 @@ function updateNavbar() {
       <div class="user-greeting">
       
       <span class="fw-bold text-dark" style="font-size: 1.15rem;">Hi, ${firstName}!</span>
-         <button class="btn-logout-modern" data-bs-toggle="modal" data-bs-target="#logoutModal">
+        <button class="btn-logout-modern" data-bs-toggle="modal" data-bs-target="#logoutModal">
           <i class="bi bi-box-arrow-right"></i>
         </button>
       </div>
-     
+    
     `;
   } else {
     if (navHistory) {
