@@ -1,7 +1,5 @@
-// file: payment-service/resolver.js
 const axios = require("axios");
 const mysql = require("mysql2/promise");
-
 const pool = mysql.createPool({
   host: "mysql-db",
   user: "root",
@@ -11,7 +9,7 @@ const pool = mysql.createPool({
 
 const resolvers = {
   Query: {
-    getPayment: async (_, { order_id }) => {
+    getPaymentById: async (_, { order_id }) => {
       const [rows] = await pool.query(
         "SELECT * FROM payments WHERE order_id = ?",
         [order_id],
@@ -20,6 +18,11 @@ const resolvers = {
         throw new Error("Data pembayaran tidak ditemukan");
       return rows[0];
     },
+
+    getPayments: async () => {
+      const [rows] = await pool.query("SELECT * FROM payments");
+      return rows;
+    },
   },
   Mutation: {
     createPayment: async (_, { order_id, payment_method, amount }) => {
@@ -27,14 +30,14 @@ const resolvers = {
         "88" + Math.floor(1000000000 + Math.random() * 9000000000);
       const status = "Unpaid";
 
-      await pool.query(
+      const [result] = await pool.query(
         "INSERT INTO payments (order_id, payment_method, va_number, amount, status) VALUES (?, ?, ?, ?, ?)",
         [order_id, payment_method, va_number, amount, status],
       );
 
       const [rows] = await pool.query(
-        "SELECT * FROM payments WHERE order_id = ?",
-        [order_id],
+        "SELECT * FROM payments WHERE id = ?",
+        [result.insertId],
       );
       return rows[0];
     },
@@ -43,10 +46,9 @@ const resolvers = {
         status,
         order_id,
       ]);
-
       if (status === "Paid") {
         try {
-          await axios.put("http://localhost:3002/api/orders/status", {
+          await axios.put("http://order-service:3002/api/orders/status", {
             order_id,
             status: "Diproses",
           });
@@ -55,7 +57,6 @@ const resolvers = {
           console.error("Gagal mengupdate Order Service:", error.message);
         }
       }
-
       const [rows] = await pool.query(
         "SELECT * FROM payments WHERE order_id = ?",
         [order_id],
@@ -64,5 +65,4 @@ const resolvers = {
     },
   },
 };
-
 module.exports = resolvers;
