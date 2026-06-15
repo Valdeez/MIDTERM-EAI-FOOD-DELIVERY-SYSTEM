@@ -210,10 +210,8 @@ async function tampilkanDetail(
   const modalElement = document.getElementById("detailModal");
   const modalObj = new bootstrap.Modal(modalElement);
   modalObj.show();
-
   const modalBody = document.getElementById("modal-body-content");
   modalBody.innerHTML = `<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted small">Memuat detail pesanan...</p></div>`;
-
   try {
     const queryItems = `
       query GetOrderItems($orderId: Int!) {
@@ -225,7 +223,6 @@ async function tampilkanDetail(
         }
       }
     `;
-
     const itemsRes = await fetch(GATEWAY_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -234,11 +231,8 @@ async function tampilkanDetail(
         variables: { orderId: parseInt(orderId) },
       }),
     });
-
     const itemsResult = await itemsRes.json();
-
     if (itemsResult.errors) throw new Error(itemsResult.errors[0].message);
-
     const orderItems = itemsResult.data.getOrderItems || [];
 
     let menus = [];
@@ -254,7 +248,6 @@ async function tampilkanDetail(
           }
         }
       `;
-
       const menuRes = await fetch(GATEWAY_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -263,9 +256,7 @@ async function tampilkanDetail(
           variables: { restaurantId: restaurantId.toString() },
         }),
       });
-
       const menuResult = await menuRes.json();
-
       if (
         menuResult.data &&
         menuResult.data.menuDetail &&
@@ -277,8 +268,37 @@ async function tampilkanDetail(
       console.warn("Gagal mengambil nama menu", e);
     }
 
-    const paymentMethod =
-      localStorage.getItem("last_payment_method") || "QRIS / VA";
+    let paymentMethod = "-";
+    let paymentStatus = "-";
+    try {
+      const queryPayment = `
+        query GetPayments {
+          getPayments {
+            order_id
+            payment_method
+            status
+          }
+        }
+      `;
+      const payRes = await fetch(GATEWAY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: queryPayment }),
+      });
+      const payResult = await payRes.json();
+      const payments = payResult.data?.getPayments || [];
+      const thisPayment = payments.find(
+        (p) => p.order_id.toString() === orderId.toString(),
+      );
+      if (thisPayment) {
+        paymentMethod = thisPayment.payment_method;
+        paymentStatus = thisPayment.status;
+      }
+    } catch (e) {
+      console.warn("Gagal mengambil data pembayaran", e);
+    }
+
+    const statusBadgeColor = paymentStatus === "Paid" ? "bg-success" : "bg-warning text-dark";
 
     let htmlContent = `
             <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
@@ -289,18 +309,18 @@ async function tampilkanDetail(
                 <div class="text-end">
                     <small class="text-muted d-block" style="font-size: 0.7rem; text-transform: uppercase; font-weight: 700;">Metode Bayar</small>
                     <span class="badge bg-light text-dark border mt-1">${paymentMethod}</span>
+                    <br>
+                    <span class="badge ${statusBadgeColor} mt-1">${paymentStatus}</span>
                 </div>
             </div>
             <div class="mb-3">
         `;
-
     orderItems.forEach((item) => {
       const dataMenu = menus.find(
         (m) => m.id.toString() === item.menu_id.toString(),
       );
       const namaMenu = dataMenu ? dataMenu.name : `Menu ID-${item.menu_id}`;
       const subtotalItem = parseInt(item.qty) * parseInt(item.price);
-
       htmlContent += `
                 <div class="d-flex justify-content-between mb-2 align-items-center">
                     <div>
@@ -310,7 +330,6 @@ async function tampilkanDetail(
                 </div>
             `;
     });
-
     htmlContent += `
             </div>
             <div class="d-flex justify-content-between pt-3 border-top mt-2 align-items-center">
@@ -318,7 +337,6 @@ async function tampilkanDetail(
                 <span class="fw-bold text-primary fs-5">Rp ${parseInt(totalAmount).toLocaleString("id-ID")}</span>
             </div>
         `;
-
     modalBody.innerHTML = htmlContent;
   } catch (error) {
     modalBody.innerHTML = `
