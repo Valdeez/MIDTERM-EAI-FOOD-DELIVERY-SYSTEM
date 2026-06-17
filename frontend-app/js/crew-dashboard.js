@@ -1,5 +1,4 @@
-const MENU_API = "http://localhost:3001/api";
-const ORDER_API = "http://localhost:3002/api";
+const BASE_URL = "http://localhost:3000";
 
 const checkRole = localStorage.getItem("user_role");
 
@@ -35,10 +34,33 @@ async function loadOrders() {
   tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4"><div class="spinner-border text-primary spinner-border-sm"></div> Memuat...</td></tr>`;
 
   try {
-    const res = await fetch(`${ORDER_API}/orders`);
+    const queryAllOrders = `
+      query GetAllOrders {
+        getOrders {
+          id
+          restaurant_id
+          total_amount
+          status
+        }
+      }
+    `;
+
+    const res = await fetch(BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: queryAllOrders,
+      }),
+    });
+
     const result = await res.json();
 
-    let orders = result.data || [];
+    if (result.errors) {
+      throw new Error(result.errors[0].message);
+    }
+
+    let orders = result.data.getOrders || [];
+
     orders = orders.filter((o) => o.restaurant_id == CREW_RESTO_ID).reverse();
 
     if (orders.length === 0) {
@@ -73,6 +95,7 @@ async function loadOrders() {
     });
     tbody.innerHTML = html;
   } catch (e) {
+    console.error("Gagal memuat pesanan:", e);
     tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Gagal memuat pesanan.</td></tr>`;
   }
 }
@@ -89,20 +112,35 @@ async function finishOrder(orderId) {
 
 async function updateOrderStatus(orderId, newStatus) {
   try {
-    const res = await fetch(`${ORDER_API}/orders/${orderId}`, {
-      method: "PUT",
+    const updateMutation = `
+      mutation UpdateOrderStatus($orderId: ID!, $status: String!) {
+        updateOrderStatus(id: $orderId, status: $status)
+      }
+    `;
+
+    const res = await fetch(BASE_URL, {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
+      body: JSON.stringify({
+        query: updateMutation,
+        variables: {
+          orderId: orderId.toString(),
+          status: newStatus,
+        },
+      }),
     });
 
-    if (res.ok) {
+    const result = await res.json();
+
+    if (!result.errors) {
       loadOrders();
     } else {
+      console.error("Error GraphQL:", result.errors);
       alert("Gagal mengupdate status pesanan.");
     }
   } catch (e) {
     console.error(e);
-    alert("Terjadi kesalahan koneksi ke Order Service.");
+    alert("Terjadi kesalahan koneksi ke API Gateway.");
   }
 }
 
@@ -111,11 +149,36 @@ let menuModalInstance;
 async function loadMenus() {
   const tbody = document.getElementById("table-menus");
   try {
-    const res = await fetch(
-      `${MENU_API}/menus/detail?restaurant_id=${CREW_RESTO_ID}`,
-    );
+    const queryMenu = `
+      query GetMenuDetail($restaurantId: ID!) {
+        menuDetail(restaurant_id: $restaurantId) {
+          data {
+            id
+            name
+            price
+            description
+            image
+          }
+        }
+      }
+    `;
+
+    const res = await fetch(BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: queryMenu,
+        variables: { restaurantId: CREW_RESTO_ID.toString() },
+      }),
+    });
+
     const result = await res.json();
-    const menus = result.data || [];
+    if (result.errors) throw new Error(result.errors[0].message);
+
+    const menus =
+      result.data && result.data.menuDetail && result.data.menuDetail.data
+        ? result.data.menuDetail.data
+        : [];
 
     let html = "";
     menus.forEach((menu) => {
@@ -123,8 +186,16 @@ async function loadMenus() {
       const safeDesc = desc.replace(/'/g, "\\'");
       const safeName = menu.name.replace(/'/g, "\\'");
 
+      // Susun URL Gambar Menu
+      const imgUrl = menu.image
+        ? `http://localhost:3001${menu.image}`
+        : "https://via.placeholder.com/50?text=N/A";
+
       html += `
                 <tr>
+                    <td>
+                        <img src="${imgUrl}" alt="${safeName}" class="rounded border" style="width: 50px; height: 50px; object-fit: cover;">
+                    </td>
                     <td class="fw-bold text-dark">${menu.name}</td>
                     <td>Rp ${parseInt(menu.price).toLocaleString("id-ID")}</td>
                     <td class="text-muted small">${desc}</td>
@@ -135,11 +206,12 @@ async function loadMenus() {
                 </tr>
             `;
     });
+
     tbody.innerHTML =
       html ||
-      `<tr><td colspan="4" class="text-center text-muted">Belum ada menu.</td></tr>`;
+      `<tr><td colspan="5" class="text-center text-muted py-4">Belum ada menu.</td></tr>`;
   } catch (e) {
-    console.error(e);
+    console.error("Gagal memuat daftar menu:", e);
   }
 }
 
@@ -165,107 +237,309 @@ function openMenuModal(id = "", name = "", price = "", desc = "") {
 async function saveMenu() {
   const id = document.getElementById("menu-id").value;
 
-  const formData = new FormData();
-  formData.append("restaurant_id", CREW_RESTO_ID);
-  formData.append("crew_restaurant_id", CREW_RESTO_ID);
-  formData.append("name", document.getElementById("menu-name").value);
-  formData.append("price", document.getElementById("menu-price").value);
-  formData.append("description", document.getElementById("menu-desc").value);
+  const nameVal = document.getElementById("menu-name").value;
+  const priceVal = parseInt(document.getElementById("menu-price").value);
+  const descVal = document.getElementById("menu-desc").value;
 
+  let finalImagePath = null;
   const imageFile = document.getElementById("menu-image").files[0];
-  if (imageFile) {
-    formData.append("image", imageFile);
-  }
-
-  const url = id ? `${MENU_API}/menus/${id}` : `${MENU_API}/menus`;
-  const method = id ? "PUT" : "POST";
 
   try {
-    const res = await fetch(url, {
-      method: method,
-      body: formData,
+    if (imageFile) {
+      const imgFormData = new FormData();
+      imgFormData.append("image", imageFile);
+
+      const uploadRes = await fetch("http://localhost:3001/upload", {
+        method: "POST",
+        body: imgFormData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Gagal mengunggah gambar menu ke server");
+      }
+
+      const uploadResult = await uploadRes.json();
+      finalImagePath = uploadResult.filePath;
+    }
+
+    let queryMutation;
+    let variables = {
+      name: nameVal,
+      price: priceVal,
+      description: descVal,
+      crewRestaurantId: CREW_RESTO_ID.toString(),
+    };
+
+    if (finalImagePath) {
+      variables.image = finalImagePath;
+    }
+
+    if (id) {
+      queryMutation = `
+        mutation UpdateMenu(
+          $id: ID!
+          $name: String!
+          $price: Int!
+          $description: String
+          $crewRestaurantId: ID!
+          $image: String
+        ) {
+          updateMenu(
+            id: $id
+            name: $name
+            price: $price
+            description: $description
+            crew_restaurant_id: $crewRestaurantId
+            image: $image
+          ) {
+            message
+          }
+        }
+      `;
+      variables.id = id.toString();
+    } else {
+      queryMutation = `
+        mutation CreateMenu(
+          $restaurantId: ID!
+          $name: String!
+          $price: Int!
+          $description: String
+          $crewRestaurantId: ID!
+          $image: String
+        ) {
+          createMenu(
+            restaurant_id: $restaurantId
+            name: $name
+            price: $price
+            description: $description
+            crew_restaurant_id: $crewRestaurantId
+            image: $image
+          ) {
+            message
+          }
+        }
+      `;
+      variables.restaurantId = CREW_RESTO_ID.toString();
+    }
+
+    const res = await fetch(BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: queryMutation,
+        variables: variables,
+      }),
     });
 
-    if (res.ok) {
+    const result = await res.json();
+
+    if (!result.errors) {
       menuModalInstance.hide();
       loadMenus();
     } else {
-      const err = await res.json();
-      alert("Gagal menyimpan menu: " + err.message);
+      alert("Gagal menyimpan menu: " + result.errors[0].message);
     }
   } catch (e) {
     console.error(e);
+    alert(`Terjadi kesalahan: ${e.message}`);
   }
 }
 
 async function deleteMenu(id) {
   if (!confirm("Hapus menu ini secara permanen?")) return;
+
   try {
-    const res = await fetch(`${MENU_API}/menus/${id}`, {
-      method: "DELETE",
+    const deleteMutation = `
+      mutation DeleteMenu($id: ID!, $crewRestaurantId: ID!) {
+        deleteMenu(id: $id, crew_restaurant_id: $crewRestaurantId) {
+          message
+        }
+      }
+    `;
+
+    const res = await fetch(BASE_URL, {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ crew_restaurant_id: CREW_RESTO_ID }),
+      body: JSON.stringify({
+        query: deleteMutation,
+        variables: {
+          id: id.toString(),
+          crewRestaurantId: CREW_RESTO_ID.toString(),
+        },
+      }),
     });
-    if (res.ok) loadMenus();
+
+    const result = await res.json();
+
+    if (!result.errors) {
+      loadMenus();
+    } else {
+      alert("Gagal menghapus menu: " + result.errors[0].message);
+    }
   } catch (e) {
     console.error(e);
+    alert("Terjadi kesalahan jaringan saat menghapus menu.");
   }
 }
 
 async function loadRestoProfile() {
   try {
-    const res = await fetch(
-      `${MENU_API}/restaurants/detail?id=${CREW_RESTO_ID}`,
-    );
+    const queryDetail = `
+      query GetRestaurantDetail($id: ID!) {
+        restaurantDetail(id: $id) {
+          data {
+            name
+            address
+            jam_operasional
+            deskripsi
+            is_active
+            image 
+          }
+        }
+      }
+    `;
+
+    const res = await fetch(BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: queryDetail,
+        variables: { id: CREW_RESTO_ID.toString() },
+      }),
+    });
+
     const result = await res.json();
-    const resto = result.data;
+    if (result.errors) throw new Error(result.errors[0].message);
+
+    const resto = result.data.restaurantDetail.data;
 
     document.getElementById("dash-resto-name").innerText = resto.name;
     document.getElementById("dash-resto-address").innerText = resto.address;
+    document.getElementById("dash-resto-hours").innerText =
+      resto.jam_operasional || "Jam belum diatur";
+    document.getElementById("dash-resto-desc").innerText =
+      resto.deskripsi || "Belum ada deskripsi.";
 
-    document.getElementById("prof-name").value = resto.name;
-    document.getElementById("prof-address").value = resto.address;
-    document.getElementById("prof-hours").value = resto.jam_operasional || "";
-    document.getElementById("prof-desc").value = resto.deskripsi || "";
-    document.getElementById("prof-active").value = resto.is_active ? "1" : "0";
+    const statusBadge = document.getElementById("dash-resto-status");
+    if (resto.is_active) {
+      statusBadge.className = "badge bg-success";
+      statusBadge.innerHTML =
+        "<i class='bi bi-door-open me-1'></i> Buka / Aktif";
+    } else {
+      statusBadge.className = "badge bg-danger";
+      statusBadge.innerHTML =
+        "<i class='bi bi-door-closed me-1'></i> Tutup / Nonaktif";
+    }
+
+    const imgElement = document.getElementById("dash-resto-image");
+    imgElement.src = resto.image
+      ? `http://localhost:3001${resto.image}`
+      : "https://via.placeholder.com/150?text=No+Image";
+
+    const profName = document.getElementById("prof-name");
+    if (profName) {
+      profName.value = resto.name;
+      document.getElementById("prof-address").value = resto.address;
+      document.getElementById("prof-hours").value = resto.jam_operasional || "";
+      document.getElementById("prof-desc").value = resto.deskripsi || "";
+      document.getElementById("prof-active").value = resto.is_active
+        ? "1"
+        : "0";
+    }
   } catch (e) {
-    console.error("Gagal memuat profil restoran");
+    console.error("Gagal memuat profil restoran", e);
   }
 }
 
 async function saveRestoProfile() {
-  const formData = new FormData();
-  formData.append("name", document.getElementById("prof-name").value);
-  formData.append("address", document.getElementById("prof-address").value);
-  formData.append(
-    "jam_operasional",
-    document.getElementById("prof-hours").value,
-  );
-  formData.append("deskripsi", document.getElementById("prof-desc").value);
-  formData.append("is_active", document.getElementById("prof-active").value);
-  formData.append("crew_restaurant_id", CREW_RESTO_ID);
+  const nameVal = document.getElementById("prof-name").value;
+  const addressVal = document.getElementById("prof-address").value;
+  const jamVal = document.getElementById("prof-hours").value;
+  const descVal = document.getElementById("prof-desc").value;
+  const isActiveVal = document.getElementById("prof-active").value === "1";
 
+  let finalImagePath = null;
   const imageFile = document.getElementById("prof-image").files[0];
-  if (imageFile) {
-    formData.append("image", imageFile);
-  }
 
   try {
-    const res = await fetch(`${MENU_API}/restaurants/${CREW_RESTO_ID}`, {
-      method: "PUT",
-      body: formData,
+    if (imageFile) {
+      const imgFormData = new FormData();
+      imgFormData.append("image", imageFile);
+
+      const uploadRes = await fetch("http://localhost:3001/upload", {
+        method: "POST",
+        body: imgFormData,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error("Gagal mengunggah gambar ke server");
+      }
+
+      const uploadResult = await uploadRes.json();
+      finalImagePath = uploadResult.filePath;
+    }
+
+    const updateMutation = `
+      mutation UpdateRestaurant(
+        $id: ID!
+        $name: String!
+        $address: String!
+        $deskripsi: String
+        $jam_operasional: String
+        $isActive: Boolean!
+        $crewRestaurantId: ID!
+        $image: String
+      ) {
+        updateRestaurant(
+          id: $id
+          name: $name
+          address: $address
+          deskripsi: $deskripsi
+          jam_operasional: $jam_operasional
+          is_active: $isActive
+          crew_restaurant_id: $crewRestaurantId
+          image: $image
+        ) {
+          message
+        }
+      }
+    `;
+
+    const variables = {
+      id: CREW_RESTO_ID.toString(),
+      name: nameVal,
+      address: addressVal,
+      deskripsi: descVal,
+      jam_operasional: jamVal,
+      isActive: isActiveVal,
+      crewRestaurantId: CREW_RESTO_ID.toString(),
+    };
+
+    if (finalImagePath) {
+      variables.image = finalImagePath;
+    }
+
+    const res = await fetch(BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: updateMutation,
+        variables: variables,
+      }),
     });
 
-    if (res.ok) {
+    const result = await res.json();
+
+    if (!result.errors) {
       alert("Profil restoran berhasil diperbarui!");
       document.getElementById("prof-image").value = "";
       loadRestoProfile();
     } else {
-      const err = await res.json();
-      alert("Gagal memperbarui profil: " + err.message);
+      alert("Gagal memperbarui profil: " + result.errors[0].message);
     }
   } catch (e) {
     console.error(e);
+    alert(`Terjadi kesalahan saat menyimpan data: ${e.message}`);
   }
 }
 
