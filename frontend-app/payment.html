@@ -438,20 +438,62 @@
         selectedOpt.querySelector(".check-icon").classList.remove("d-none");
       }
 
-      function processPayment() {
-        const btn = document.getElementById("pay-btn");
-        const selectedMethod = document.querySelector(
-          'input[name="paymentMethod"]:checked',
-        ).value;
+      async function processPayment() {
+          const btn = document.getElementById("pay-btn");
+          const selectedMethod = document.querySelector(
+            'input[name="paymentMethod"]:checked',
+          ).value;
 
-        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Memproses...`;
-        btn.classList.add("disabled");
+          // Ambil data dari URL
+          const urlParams = new URLSearchParams(window.location.search);
+          const order_id = parseInt(urlParams.get("order_id"));
+          const amount = parseInt(urlParams.get("amount"));
 
-        setTimeout(() => {
-          alert(`Pembayaran menggunakan ${selectedMethod} berhasil!`);
-          window.location.href = "history.html";
-        }, 2000);
-      }
+          btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Memproses...`;
+          btn.classList.add("disabled");
+
+          try {
+            // Melakukan request Mutation CreatePayment ke API Gateway (port 3000)
+            const response = await fetch('http://localhost:3000', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                query: `
+                mutation CreatePayment($order_id: Int!, $payment_method: String!, $amount: Int!) {
+                  createPayment(order_id: $order_id, payment_method: $payment_method, amount: $amount) {
+                    id
+                    status
+                    va_number
+                  }
+                }
+              `,
+                variables: {
+                  order_id: order_id,
+                  payment_method: selectedMethod,
+                  amount: amount
+                }
+              })
+            });
+
+            const result = await response.json();
+
+            if (result.errors) {
+              throw new Error(result.errors[0].message);
+            }
+
+            alert(`Pembayaran menggunakan ${selectedMethod} berhasil!`);
+            window.location.href = "history.html";
+
+          } catch (error) {
+            console.error("Error submitting payment:", error);
+            alert("Gagal memproses pembayaran: " + error.message);
+
+            btn.innerHTML = "Bayar Sekarang";
+            btn.classList.remove("disabled");
+          }
+        }
 
       function startTimer(minutes, seconds) {
         let time = minutes * 60 + seconds;

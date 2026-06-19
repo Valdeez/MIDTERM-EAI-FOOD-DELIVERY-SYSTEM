@@ -63,14 +63,46 @@ async function fetchRestaurants(keyword = "") {
     '<div class="text-center w-100 py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Memuat restoran...</p></div>';
 
   try {
-    const baseUrl = "http://localhost:3001/api/restaurants";
-    const url = keyword
-      ? `${baseUrl}?search=${encodeURIComponent(keyword)}`
-      : baseUrl;
+    const queryRestaurants = `
+      query GetRestaurants($search: String) {
+        restaurants(search: $search) {
+          data {
+            id
+            name
+            address
+            is_active
+            image
+            deskripsi
+            jam_operasional
+            rating
+          }
+        }
+      }
+    `;
 
-    const response = await fetch(url);
+    const url = "http://localhost:3000/";
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: queryRestaurants,
+        variables: {
+          search: keyword,
+        },
+      }),
+    });
+
     const result = await response.json();
-    const restaurants = result.data || [];
+
+    if (result.errors) {
+      throw new Error(result.errors[0].message);
+    }
+
+    const restaurants =
+      result.data && result.data.restaurants && result.data.restaurants.data
+        ? result.data.restaurants.data
+        : [];
 
     countLabel.innerText = `${restaurants.length} Restoran ditemukan`;
 
@@ -78,7 +110,7 @@ async function fetchRestaurants(keyword = "") {
   } catch (error) {
     console.error("Gagal mengambil data:", error);
     container.innerHTML =
-      '<div class="alert alert-danger w-100">Gagal memuat data restoran. Pastikan server port 3001 berjalan.</div>';
+      '<div class="alert alert-danger w-100">Gagal memuat data restoran. Pastikan API Gateway (port 3000) berjalan.</div>';
   }
 }
 

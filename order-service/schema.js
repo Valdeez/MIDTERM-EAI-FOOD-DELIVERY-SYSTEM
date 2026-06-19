@@ -30,16 +30,12 @@ const typeDefs = gql`
   type Mutation {
     createOrder(user_id: Int!, restaurant_id: Int!, total_amount: Float!): Order
     updateOrderStatus(id: ID!, status: String!): String
-    approveOrder(order_id: Int!, restaurant_id: Int!): String
-
     addOrderItem(
       order_id: Int!
       menu_id: Int!
       qty: Int!
       price: Float!
     ): OrderItem
-    updateOrderItemQty(id: ID!, qty: Int!): String
-    deleteOrderItem(id: ID!): String
   }
 `;
 

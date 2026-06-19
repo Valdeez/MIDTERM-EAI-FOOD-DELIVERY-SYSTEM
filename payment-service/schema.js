@@ -14,7 +14,8 @@ const typeDefs = gql`
   }
 
   type Query {
-    getPayment(order_id: Int!): Payment
+    getPaymentById(order_id: Int!): Payment
+    getPayments: [Payment]
   }
 
   type Mutation {
