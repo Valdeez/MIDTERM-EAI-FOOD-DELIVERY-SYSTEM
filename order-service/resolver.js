@@ -3,9 +3,9 @@ const mysql = require("mysql2/promise");
 
 // Koneksi database langsung diletakkan di sini
 const pool = mysql.createPool({
-  host: "mysql-db",
+  host: "mysql_order",
   user: "root",
-  password: "",
+  password: "root",
   database: "db_order",
 });
 
