@@ -2,16 +2,54 @@ version: "3.8"
 
 services:
   # 1. Database MySQL
-  mysql-db:
-    image: mysql:8.0
-    container_name: mysql-db
+  mysql_restaurant:
+    image: mysql:latest
+    container_name: mysql_restaurant
     environment:
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_restaurant
     ports:
       - "3306:3306"
     volumes:
-      - db_data:/var/lib/mysql
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_restaurant_data:/var/lib/mysql
+      - ./init/init_restaurant.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mysql_user:
+    image: mysql:latest
+    container_name: mysql_user
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_user
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_user_data:/var/lib/mysql
+      - ./init/init_user.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mysql_payment:
+    image: mysql:latest
+    container_name: mysql_payment
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_payment
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql_payment_data:/var/lib/mysql
+      - ./init/init_payment.sql:/docker-entrypoint-initdb.d/init.sql
+
+  mysql_order:
+    image: mysql:latest
+    container_name: mysql_order
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_order
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql_order_data:/var/lib/mysql
+      - ./init/init_order.sql:/docker-entrypoint-initdb.d/init.sql
+
   # 2. Layanan API Gateway (Supergraph)
   api-gateway:
     build: ./api-gateway
@@ -31,7 +69,7 @@ services:
     ports:
       - "3002:3002"
     depends_on:
-      - mysql-db
+      - mysql_order
 
   # 4. Layanan Restaurant
   restaurant-service:
@@ -40,7 +78,7 @@ services:
     ports:
       - "3001:3001"
     depends_on:
-      - mysql-db
+      - mysql_restaurant
 
   # 5. Layanan Payment
   payment-service:
@@ -49,7 +87,7 @@ services:
     ports:
       - "3003:3003"
     depends_on:
-      - mysql-db
+      - mysql_payment
 
   # 6. Layanan User
   user-service:
@@ -58,7 +96,10 @@ services:
     ports:
       - "3004:3004"
     depends_on:
-      - mysql-db
+      - mysql_user
 
 volumes:
-  db_data:
+  mysql_restaurant_data:
+  mysql_user_data:
+  mysql_payment_data:
+  mysql_order_data:

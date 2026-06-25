@@ -1,11 +1,13 @@
 const mysql = require("mysql2");
 
-const pool = mysql.createPool({
-  host: "mysql-db",
-  user: "root",
-  password: "",
-  database: "db_restaurant",
-}).promise();
+const pool = mysql
+  .createPool({
+    host: "mysql_restaurant",
+    user: "root",
+    password: "root",
+    database: "db_restaurant",
+  })
+  .promise();
 
 const resolvers = {
   Query: {
@@ -29,7 +31,7 @@ const resolvers = {
     restaurantDetail: async (_, { id }) => {
       const [rows] = await pool.query(
         "SELECT * FROM restaurants WHERE id = ?",
-        [id]
+        [id],
       );
 
       if (rows.length === 0) {
@@ -45,7 +47,7 @@ const resolvers = {
     menuDetail: async (_, { restaurant_id }) => {
       const [rows] = await pool.query(
         "SELECT * FROM menus WHERE restaurant_id = ?",
-        [restaurant_id]
+        [restaurant_id],
       );
 
       return {
@@ -79,7 +81,7 @@ const resolvers = {
           deskripsi || null,
           jam_operasional || null,
           rating || null,
-        ]
+        ],
       );
 
       return {
@@ -103,40 +105,25 @@ const resolvers = {
 
       if (parseInt(crew_restaurant_id) !== parseInt(id)) {
         throw new Error(
-          "Akses ditolak: Anda hanya dapat mengedit restoran Anda sendiri."
+          "Akses ditolak: Anda hanya dapat mengedit restoran Anda sendiri.",
         );
       }
 
       if (image) {
         await pool.query(
-            `UPDATE restaurants
+          `UPDATE restaurants
             SET name=?, address=?, deskripsi=?, jam_operasional=?,
                 is_active=?, image=?
             WHERE id=?`,
-          [
-            name,
-            address,
-            deskripsi,
-            jam_operasional,
-            is_active,
-            image,
-            id,
-          ]
+          [name, address, deskripsi, jam_operasional, is_active, image, id],
         );
       } else {
         await pool.query(
-            `UPDATE restaurants
+          `UPDATE restaurants
             SET name=?, address=?, deskripsi=?,
                 jam_operasional=?, is_active=?
             WHERE id=?`,
-          [
-            name,
-            address,
-            deskripsi,
-            jam_operasional,
-            is_active,
-            id,
-          ]
+          [name, address, deskripsi, jam_operasional, is_active, id],
         );
       }
 
@@ -157,7 +144,7 @@ const resolvers = {
 
       if (parseInt(crew_restaurant_id) !== parseInt(restaurant_id)) {
         throw new Error(
-          "Akses ditolak: Tidak dapat menambah menu di restoran lain."
+          "Akses ditolak: Tidak dapat menambah menu di restoran lain.",
         );
       }
 
@@ -165,7 +152,7 @@ const resolvers = {
         `INSERT INTO menus
         (restaurant_id, name, price, description, image)
         VALUES (?, ?, ?, ?, ?)`,
-        [restaurant_id, name, price, description, image || null]
+        [restaurant_id, name, price, description, image || null],
       );
 
       return {
@@ -175,30 +162,23 @@ const resolvers = {
     },
 
     updateMenu: async (_, args) => {
-      const {
-        id,
-        name,
-        price,
-        description,
-        crew_restaurant_id,
-        image,
-      } = args;
+      const { id, name, price, description, crew_restaurant_id, image } = args;
 
       let result;
 
       if (image) {
         [result] = await pool.query(
-            `UPDATE menus
+          `UPDATE menus
             SET name=?, price=?, description=?, image=?
             WHERE id=? AND restaurant_id=?`,
-          [name, price, description, image, id, crew_restaurant_id]
+          [name, price, description, image, id, crew_restaurant_id],
         );
       } else {
         [result] = await pool.query(
-            `UPDATE menus
+          `UPDATE menus
             SET name=?, price=?, description=?
             WHERE id=? AND restaurant_id=?`,
-          [name, price, description, id, crew_restaurant_id]
+          [name, price, description, id, crew_restaurant_id],
         );
       }
 
@@ -214,7 +194,7 @@ const resolvers = {
     deleteMenu: async (_, { id, crew_restaurant_id }) => {
       const [result] = await pool.query(
         "DELETE FROM menus WHERE id = ? AND restaurant_id = ?",
-        [id, crew_restaurant_id]
+        [id, crew_restaurant_id],
       );
 
       if (result.affectedRows === 0) {

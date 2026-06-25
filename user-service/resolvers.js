@@ -1,9 +1,9 @@
-const mysql = require('mysql2/promise'); 
+const mysql = require("mysql2/promise");
 const pool = mysql.createPool({
-  host: "mysql-db",
+  host: "mysql_user",
   user: "root",
-  password: "",    
-  database: "db_user" 
+  password: "root",
+  database: "db_user",
 });
 
 const resolvers = {

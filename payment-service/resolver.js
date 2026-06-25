@@ -1,9 +1,9 @@
 const axios = require("axios");
 const mysql = require("mysql2/promise");
 const pool = mysql.createPool({
-  host: "mysql-db",
+  host: "mysql_payment",
   user: "root",
-  password: "",
+  password: "root",
   database: "db_payment",
 });
 
@@ -14,8 +14,7 @@ const resolvers = {
         "SELECT * FROM payments WHERE order_id = ?",
         [order_id],
       );
-      if (rows.length === 0)
-        throw new Error("Data pembayaran tidak ditemukan");
+      if (rows.length === 0) throw new Error("Data pembayaran tidak ditemukan");
       return rows[0];
     },
 
@@ -35,10 +34,9 @@ const resolvers = {
         [order_id, payment_method, va_number, amount, status],
       );
 
-      const [rows] = await pool.query(
-        "SELECT * FROM payments WHERE id = ?",
-        [result.insertId],
-      );
+      const [rows] = await pool.query("SELECT * FROM payments WHERE id = ?", [
+        result.insertId,
+      ]);
       return rows[0];
     },
     updatePaymentStatus: async (_, { order_id, status }) => {
